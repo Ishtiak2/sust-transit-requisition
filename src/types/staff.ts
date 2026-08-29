@@ -1,22 +1,18 @@
-export type StaffDesignation =
+export type DriverDesignation =
   | "Supervisor Driver"
   | "Senior Driver"
   | "Driver"
-  | "Driver (Grade-1)"
-  | "Driver (Outsourced)"
-  | "Assistant Supervisor"
-  | "Assistant Auto Mechanic"
-  | "Bus Conductor"
-  | "Helper"
-  | "Helper (Outsourced)";
+  | "Driver (Outsourced)";
 
-export type EmploymentType = "Permanent" | "Outsourced";
+export type StaffStatus = "Active" | "Inactive";
 
 export interface Staff {
   id: string;
   name: string;
-  designation: StaffDesignation;
-  employmentType: EmploymentType;
-  contactNumber?: string;
-  assignedVehicleId?: string;
+  designation: DriverDesignation;
+  phone?: string;
+  status: StaffStatus;
+
+  // Vehicle permanently assigned to this driver
+  permanentVehicleId?: string;
 }
