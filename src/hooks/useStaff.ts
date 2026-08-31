@@ -1,55 +1,27 @@
-import { useEffect, useState } from "react";
+import useLocalStorageCollection from "./useLocalStorageCollection";
 import type { Staff } from "../types";
 
 const STORAGE_KEY = "sust-transit-staff";
 
 export default function useStaff() {
-  const [staff, setStaff] = useState<Staff[]>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-
-    if (!stored) {
-      return [];
-    }
-
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(staff));
-  }, [staff]);
-
-  function addStaff(member: Staff) {
-    setStaff((current) => [...current, member]);
-  }
-
-  function updateStaff(updated: Staff) {
-    setStaff((current) =>
-      current.map((member) => (member.id === updated.id ? updated : member)),
-    );
-  }
+  const { items, add, update, remove } =
+    useLocalStorageCollection<Staff>(STORAGE_KEY);
 
   function deactivateStaff(id: string) {
-    setStaff((current) =>
-      current.map((member) =>
-        member.id === id
-          ? {
-              ...member,
-              status: "Inactive",
-              permanentVehicleId: undefined,
-            }
-          : member,
-      ),
-    );
+    const member = items.find((item) => item.id === id);
+    if (member) {
+      update({
+        ...member,
+        status: "Inactive",
+        permanentVehicleId: undefined,
+      });
+    }
   }
 
   return {
-    staff,
-    addStaff,
-    updateStaff,
+    staff: items,
+    addStaff: add,
+    updateStaff: update,
     deactivateStaff,
   };
 }

@@ -22,6 +22,10 @@ const navigationItems = [
     path: "/admin/schedule",
   },
   {
+    label: "Requisitions",
+    path: "/admin/requisitions",
+  },
+  {
     label: "Allocation",
     path: "/admin/allocation",
   },

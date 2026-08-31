@@ -1,11 +1,11 @@
-export type NotificationType = "New Request" | "Conflict";
+export type NotificationType = "New Requisition" | "Conflict";
 
-export interface Notification {
+export interface AppNotification {
   id: string;
   type: NotificationType;
   message: string;
   timestamp: string;
-  referenceId: string;
-  referenceType: "Requisition" | "Conflict";
+  linkType: "requisition" | "conflict";
+  linkId: string;
   isRead: boolean;
 }

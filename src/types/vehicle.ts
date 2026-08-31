@@ -4,6 +4,7 @@ export type VehicleCategory =
   | "Mitsubishi Bus"
   | "Hino Bus"
   | "Tata Bus"
+  | "Eicher Bus"
   | "Minibus"
   | "Minibus A/C"
   | "Microbus"
@@ -36,6 +37,7 @@ export const VEHICLE_CATEGORIES: VehicleCategory[] = [
   "Mitsubishi Bus",
   "Hino Bus",
   "Tata Bus",
+  "Eicher Bus",
   "Minibus",
   "Minibus A/C",
   "Microbus",

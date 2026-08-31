@@ -12,6 +12,7 @@ import ConflictsPage from "./pages/ConflictsPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import MileagePage from "./pages/MileagePage";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
+import RequisitionsPage from "./pages/RequisitionsPage";
 
 const router = createBrowserRouter([
   {
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path: "schedule",
         element: <SchedulePage />,
+      },
+      {
+        path: "requisitions",
+        element: <RequisitionsPage />,
       },
       {
         path: "allocation",

@@ -2,20 +2,28 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   onClose: () => void;
+  wide?: boolean;
 }
 
-export default function Modal({ title, children, onClose }: ModalProps) {
+export default function Modal({
+  title,
+  children,
+  onClose,
+  wide = false,
+}: ModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-lg border border-[#E2E8F0] bg-white shadow-lg"
+        className={`max-h-[90vh] w-full ${
+          wide ? "max-w-3xl" : "max-w-lg"
+        } overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white shadow-lg`}
         onClick={(event) => event.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
+        <div className="sticky top-0 flex items-center justify-between border-b border-[#E2E8F0] bg-white px-5 py-4">
           <h2 className="text-lg font-semibold text-[#1E293B]">{title}</h2>
 
           <button
