@@ -259,7 +259,8 @@ export default function RequisitionForm({
         startDate: paperDate,
         endDate: paperDate,
         scheduleType: "Single",
-        status: "Recommended",
+        status:
+          requisitionType === "Personal" ? "Pending Approval" : "Recommended",
         createdAt: new Date().toISOString(),
         trips: [trip],
       };
@@ -304,7 +305,8 @@ export default function RequisitionForm({
       startDate,
       endDate,
       scheduleType,
-      status: "Recommended",
+      status:
+        requisitionType === "Personal" ? "Pending Approval" : "Recommended",
       createdAt: new Date().toISOString(),
       trips: builtTrips,
     };

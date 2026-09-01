@@ -13,8 +13,13 @@ import NotificationsPage from "./pages/NotificationsPage";
 import MileagePage from "./pages/MileagePage";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import RequisitionsPage from "./pages/RequisitionsPage";
+import ApplyRequisitionPage from "./pages/ApplyRequisitionPage";
 
 const router = createBrowserRouter([
+  {
+    path: "/apply",
+    element: <ApplyRequisitionPage />,
+  },
   {
     path: "/admin",
     element: <AdminLayout />,

@@ -1,14 +1,12 @@
 import { useState } from "react";
 
 import useRequisitions from "../hooks/useRequisitions";
-import useNotifications from "../hooks/useNotifications";
 import useAllocations from "../hooks/useAllocations";
 import useVehicles from "../hooks/useVehicles";
 import useStaff from "../hooks/useStaff";
 import useDutySlips from "../hooks/useDutySlips";
 
 import Modal from "../components/Modal";
-import RequisitionForm from "../components/RequisitionForm";
 import RequisitionDetail from "../components/RequisitionDetail";
 
 import {
@@ -20,7 +18,7 @@ import { getEligibleDutySlipGroups } from "../utils/dutySlipUtils";
 import { generateConfirmationSlip } from "../utils/pdf/confirmationSlip";
 import { generateDutySlipPdf } from "../utils/pdf/dutySlip";
 
-import type { Requisition, ApplicationStatus } from "../types";
+import type { ApplicationStatus } from "../types";
 
 type Tab = "queue" | "approved" | "rejected" | "all";
 
@@ -34,14 +32,8 @@ function statusBadgeClass(status: ApplicationStatus) {
 }
 
 export default function RequisitionsPage() {
-  const {
-    requisitions,
-    addRequisition,
-    approveTrip,
-    rejectTrip,
-    resetTripDecision,
-  } = useRequisitions();
-  const { addNotification } = useNotifications();
+  const { requisitions, approveTrip, rejectTrip, resetTripDecision } =
+    useRequisitions();
   const { allocations, addAllocation, updateAllocation, removeAllocation } =
     useAllocations();
   const { vehicles } = useVehicles();
@@ -49,7 +41,6 @@ export default function RequisitionsPage() {
   const { dutySlips, addDutySlip } = useDutySlips();
 
   const [tab, setTab] = useState<Tab>("queue");
-  const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const sorted = [...requisitions].sort((a, b) =>
@@ -70,22 +61,6 @@ export default function RequisitionsPage() {
   const selected = requisitions.find(
     (requisition) => requisition.id === selectedId,
   );
-
-  function handleAdd(requisition: Requisition) {
-    addRequisition(requisition);
-
-    addNotification({
-      id: crypto.randomUUID(),
-      type: "New Requisition",
-      message: `${requisition.requesterName} submitted a ${requisition.requisitionType.toLowerCase()} requisition (${requisition.trips.length} trip${requisition.trips.length === 1 ? "" : "s"})`,
-      timestamp: new Date().toISOString(),
-      linkType: "requisition",
-      linkId: requisition.id,
-      isRead: false,
-    });
-
-    setIsAddOpen(false);
-  }
 
   function handleApproveTripWithVehicle(
     requisitionId: string,
@@ -174,22 +149,11 @@ export default function RequisitionsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-[#1E293B]">
-            Requisitions
-          </h1>
-          <p className="mt-1 text-sm text-[#64748B]">
-            Review, approve/reject, and allocate incoming transport requisitions
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setIsAddOpen(true)}
-          className="h-10 rounded-md bg-[#0F2747] px-4 text-sm font-medium text-white hover:bg-[#334E68]"
-        >
-          + Add Requisition
-        </button>
+      <div>
+        <h1 className="text-2xl font-semibold text-[#1E293B]">Requisitions</h1>
+        <p className="mt-1 text-sm text-[#64748B]">
+          Review, approve/reject, and allocate incoming transport requisitions
+        </p>
       </div>
 
       <div className="flex gap-2 border-b border-[#E2E8F0]">
@@ -296,15 +260,6 @@ export default function RequisitionsPage() {
           </table>
         </div>
       </div>
-
-      {isAddOpen && (
-        <Modal title="Add Requisition" onClose={() => setIsAddOpen(false)} wide>
-          <RequisitionForm
-            onSubmit={handleAdd}
-            onCancel={() => setIsAddOpen(false)}
-          />
-        </Modal>
-      )}
 
       {selected && (
         <Modal
