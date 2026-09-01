@@ -209,13 +209,8 @@ export default function FleetPage() {
       "
       >
         <div>
-          <h1
-            className="
-            text-2xl font-semibold
-            text-[#1E293B]
-          "
-          >
-            Fleet Management
+          <h1 className="text-2xl font-semibold text-[#1E293B]">
+            Vehicle Management
           </h1>
 
           <p

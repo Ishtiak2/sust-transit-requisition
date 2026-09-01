@@ -25,22 +25,11 @@ import type { Requisition, ApplicationStatus } from "../types";
 type Tab = "queue" | "approved" | "rejected" | "all";
 
 function statusBadgeClass(status: ApplicationStatus) {
-  if (status === "Approved") {
-    return "bg-[#DCFCE7] text-[#15803D]";
-  }
-
-  if (status === "Ready for Accounts") {
-    return "bg-[#E2E8F0] text-[#334E68]";
-  }
-
-  if (status === "Rejected") {
-    return "bg-[#FEE2E2] text-[#B91C1C]";
-  }
-
-  if (status === "Partially Approved") {
-    return "bg-[#FEF3C7] text-[#B45309]";
-  }
-
+  if (status === "Approved") return "bg-[#DCFCE7] text-[#15803D]";
+  if (status === "Ready for Accounts") return "bg-[#E2E8F0] text-[#334E68]";
+  if (status === "Rejected") return "bg-[#FEE2E2] text-[#B91C1C]";
+  if (status === "Partially Approved") return "bg-[#FEF3C7] text-[#B45309]";
+  if (status === "Pending Approval") return "bg-[#EDE9FE] text-[#6D28D9]";
   return "bg-[#DBEAFE] text-[#0F2747]";
 }
 
@@ -53,7 +42,8 @@ export default function RequisitionsPage() {
     resetTripDecision,
   } = useRequisitions();
   const { addNotification } = useNotifications();
-  const { allocations } = useAllocations();
+  const { allocations, addAllocation, updateAllocation, removeAllocation } =
+    useAllocations();
   const { vehicles } = useVehicles();
   const { staff } = useStaff();
   const { dutySlips, addDutySlip } = useDutySlips();
@@ -67,21 +57,13 @@ export default function RequisitionsPage() {
   );
 
   const filtered = sorted.filter((requisition) => {
-    if (tab === "queue") {
-      return isInActiveQueue(requisition);
-    }
-
-    if (tab === "approved") {
+    if (tab === "queue") return isInActiveQueue(requisition);
+    if (tab === "approved")
       return (
         requisition.status === "Approved" ||
         requisition.status === "Ready for Accounts"
       );
-    }
-
-    if (tab === "rejected") {
-      return requisition.status === "Rejected";
-    }
-
+    if (tab === "rejected") return requisition.status === "Rejected";
     return true;
   });
 
@@ -105,27 +87,76 @@ export default function RequisitionsPage() {
     setIsAddOpen(false);
   }
 
-  function handleGenerateConfirmationSlip() {
-    if (!selected) {
+  function handleApproveTripWithVehicle(
+    requisitionId: string,
+    tripId: string,
+    vehicleId: string,
+    driverId?: string,
+  ) {
+    approveTrip(requisitionId, tripId);
+
+    const trip = requisitions
+      .find((requisition) => requisition.id === requisitionId)
+      ?.trips.find((item) => item.id === tripId);
+
+    if (!trip) {
       return;
     }
 
+    addAllocation({
+      id: crypto.randomUUID(),
+      requisitionId,
+      tripId,
+      vehicleId,
+      driverId,
+      date: trip.date,
+      startTime: trip.startTime,
+      endTime: trip.endTime,
+      allocatedAt: new Date().toISOString(),
+    });
+  }
+
+  function handleReassignTrip(
+    tripId: string,
+    vehicleId: string,
+    driverId?: string,
+  ) {
+    const allocation = allocations.find((item) => item.tripId === tripId);
+
+    if (allocation) {
+      updateAllocation({
+        ...allocation,
+        vehicleId,
+        driverId,
+        allocatedAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  function handleResetTrip(requisitionId: string, tripId: string) {
+    resetTripDecision(requisitionId, tripId);
+
+    const allocation = allocations.find((item) => item.tripId === tripId);
+
+    if (allocation) {
+      removeAllocation(allocation.id);
+    }
+  }
+
+  function handleGenerateConfirmationSlip() {
+    if (!selected) return;
     generateConfirmationSlip(selected, allocations, vehicles, staff);
   }
 
   function handleGenerateDutySlip(driverId: string) {
-    if (!selected) {
-      return;
-    }
+    if (!selected) return;
 
     const group = getEligibleDutySlipGroups(selected, allocations).find(
       (item) => item.driverId === driverId,
     );
     const driver = staff.find((member) => member.id === driverId);
 
-    if (!group || !driver) {
-      return;
-    }
+    if (!group || !driver) return;
 
     generateDutySlipPdf(selected, driver, group.trips, vehicles);
 
@@ -148,12 +179,10 @@ export default function RequisitionsPage() {
           <h1 className="text-2xl font-semibold text-[#1E293B]">
             Requisitions
           </h1>
-
           <p className="mt-1 text-sm text-[#64748B]">
-            Review and approve/reject incoming transport requisitions
+            Review, approve/reject, and allocate incoming transport requisitions
           </p>
         </div>
-
         <button
           type="button"
           onClick={() => setIsAddOpen(true)}
@@ -201,7 +230,6 @@ export default function RequisitionsPage() {
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
-
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
@@ -209,7 +237,6 @@ export default function RequisitionsPage() {
                     <p className="font-medium text-[#1E293B]">
                       No requisitions found
                     </p>
-
                     <p className="mt-1 text-sm text-[#64748B]">
                       Add a requisition to get started.
                     </p>
@@ -218,51 +245,40 @@ export default function RequisitionsPage() {
               ) : (
                 filtered.map((requisition, index) => {
                   const counts = getTripStatusCounts(requisition.trips);
-
                   return (
                     <tr
                       key={requisition.id}
-                      className={`border-t border-[#E2E8F0] ${
-                        index % 2 === 1 ? "bg-[#F8FAFC]" : "bg-white"
-                      }`}
+                      className={`border-t border-[#E2E8F0] ${index % 2 === 1 ? "bg-[#F8FAFC]" : "bg-white"}`}
                     >
                       <td className="px-4 py-3 text-[#64748B]">
                         {requisition.requisitionType}
                       </td>
-
                       <td className="px-4 py-3 font-medium text-[#1E293B]">
                         {requisition.requesterName}
                       </td>
-
                       <td
                         className="max-w-xs truncate px-4 py-3 text-[#64748B]"
                         title={requisition.purpose}
                       >
                         {requisition.purpose}
                       </td>
-
                       <td className="px-4 py-3 text-[#64748B]">
                         {formatDateRange(
                           requisition.startDate,
                           requisition.endDate,
                         )}
                       </td>
-
                       <td className="px-4 py-3 text-[#64748B]">
                         {requisition.trips.length} ({counts.approved}A /{" "}
                         {counts.rejected}R / {counts.pending}P)
                       </td>
-
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeClass(
-                            requisition.status,
-                          )}`}
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeClass(requisition.status)}`}
                         >
                           {requisition.status}
                         </span>
                       </td>
-
                       <td className="px-4 py-3 text-right">
                         <button
                           type="button"
@@ -302,9 +318,9 @@ export default function RequisitionsPage() {
             staff={staff}
             allocations={allocations}
             dutySlips={dutySlips}
-            onApproveTrip={approveTrip}
+            onApproveTripWithVehicle={handleApproveTripWithVehicle}
             onRejectTrip={rejectTrip}
-            onResetTrip={resetTripDecision}
+            onResetTrip={handleResetTrip}
             onGenerateConfirmationSlip={handleGenerateConfirmationSlip}
             onGenerateDutySlip={handleGenerateDutySlip}
           />

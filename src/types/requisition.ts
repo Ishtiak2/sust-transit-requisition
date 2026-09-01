@@ -17,6 +17,7 @@ export type ApplicationStatus =
   | "Pending Recommendation"
   | "Information Requested"
   | "Recommended"
+  | "Pending Approval"
   | "Partially Approved"
   | "Approved"
   | "Ready for Accounts"

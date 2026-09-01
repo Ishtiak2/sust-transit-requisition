@@ -1,8 +1,22 @@
-import type { Requisition, Trip, ApplicationStatus } from "../types";
+import type {
+  Requisition,
+  Trip,
+  ApplicationStatus,
+  RequisitionType,
+} from "../types";
 
-export function computeApplicationStatus(trips: Trip[]): ApplicationStatus {
+export function computeApplicationStatus(
+  trips: Trip[],
+  requisitionType: RequisitionType,
+): ApplicationStatus {
+  // Personal requisitions skip the recommender workflow entirely and go
+  // straight to the Transport Administrator, so they should never show
+  // "Recommended" — every other type enters the queue as "Recommended".
+  const defaultStatus: ApplicationStatus =
+    requisitionType === "Personal" ? "Pending Approval" : "Recommended";
+
   if (trips.length === 0) {
-    return "Recommended";
+    return defaultStatus;
   }
 
   const allApproved = trips.every((trip) => trip.status === "Approved");
@@ -21,12 +35,13 @@ export function computeApplicationStatus(trips: Trip[]): ApplicationStatus {
     return "Partially Approved";
   }
 
-  return "Recommended";
+  return defaultStatus;
 }
 
 export function isInActiveQueue(requisition: Requisition): boolean {
   return (
     requisition.status === "Recommended" ||
+    requisition.status === "Pending Approval" ||
     requisition.status === "Partially Approved"
   );
 }

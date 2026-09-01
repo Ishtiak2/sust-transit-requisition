@@ -111,7 +111,7 @@ export default function DashboardPage() {
         <StatCard
           label="Today's Allocations"
           value={todaysAllocations.length}
-          href="/admin/allocation"
+          href="/admin/requisitions"
         />
         <StatCard
           label="Pending Requisitions"
@@ -147,7 +147,7 @@ export default function DashboardPage() {
             </p>
 
             <Link
-              to="/admin/allocation"
+              to="/admin/requisitions"
               className="text-xs font-medium text-[#334E68] hover:underline"
             >
               View all

@@ -9,12 +9,9 @@ export default function useStaff() {
 
   function deactivateStaff(id: string) {
     const member = items.find((item) => item.id === id);
+
     if (member) {
-      update({
-        ...member,
-        status: "Inactive",
-        permanentVehicleId: undefined,
-      });
+      update({ ...member, status: "Inactive", permanentVehicleId: undefined });
     }
   }
 
@@ -23,5 +20,6 @@ export default function useStaff() {
     addStaff: add,
     updateStaff: update,
     deactivateStaff,
+    deleteStaff: remove,
   };
 }

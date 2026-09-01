@@ -54,7 +54,7 @@ export default function useRequisitions() {
         return {
           ...requisition,
           trips,
-          status: computeApplicationStatus(trips),
+          status: computeApplicationStatus(trips, requisition.requisitionType),
         };
       }),
     );
@@ -86,7 +86,7 @@ export default function useRequisitions() {
         return {
           ...requisition,
           trips,
-          status: computeApplicationStatus(trips),
+          status: computeApplicationStatus(trips, requisition.requisitionType),
         };
       }),
     );
@@ -121,7 +121,7 @@ export default function useRequisitions() {
         return {
           ...requisition,
           trips,
-          status: computeApplicationStatus(trips),
+          status: computeApplicationStatus(trips, requisition.requisitionType),
         };
       }),
     );

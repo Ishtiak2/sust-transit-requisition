@@ -9,7 +9,6 @@ import RouteForm from "../components/RouteFrom";
 import OffDayForm from "../components/OffDayForm";
 
 import type { RecurringRoute } from "../types";
-import DataTable from "../components/DataTable";
 
 type Tab = "routes" | "offdays";
 
@@ -75,85 +74,23 @@ export default function RoutesPage() {
           </p>
         </div>
 
-        {tab === "routes" && (
-          <DataTable
-            rows={routes}
-            rowKey={(route) => route.id}
-            emptyTitle="No routes found"
-            emptyDescription="Add a recurring route to get started."
-            columns={[
-              {
-                header: "Vehicle",
-                render: (route) => (
-                  <span className="font-medium text-[#1E293B]">
-                    {getVehicleLabel(route.vehicleId)}
-                  </span>
-                ),
-              },
-              { header: "Slot", render: (route) => route.slot },
-              {
-                header: "Weekdays",
-                render: (route) => route.weekdays.join(", "),
-              },
-              {
-                header: "Campus Dep.",
-                render: (route) => route.campusDeparture ?? "—",
-              },
-              {
-                header: "Point Dep.",
-                render: (route) => route.pointDeparture ?? "—",
-              },
-              {
-                header: "Route Sequence",
-                render: (route) => (
-                  <span
-                    className="line-clamp-1 max-w-xs"
-                    title={route.stops.join(" → ")}
-                  >
-                    {route.stops.join(" → ")}
-                  </span>
-                ),
-              },
-              {
-                header: "Status",
-                render: (route) => (
-                  <button
-                    type="button"
-                    onClick={() => toggleRouteActive(route.id)}
-                    className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                      route.isActive
-                        ? "bg-[#DCFCE7] text-[#15803D]"
-                        : "bg-[#FEE2E2] text-[#B91C1C]"
-                    }`}
-                  >
-                    {route.isActive ? "Active" : "Inactive"}
-                  </button>
-                ),
-              },
-              {
-                header: "Actions",
-                align: "right",
-                render: (route) => (
-                  <div className="flex justify-end gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setEditingRoute(route)}
-                      className="text-sm font-medium text-[#334E68] hover:underline"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteRoute(route)}
-                      className="text-sm font-medium text-[#B91C1C] hover:underline"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                ),
-              },
-            ]}
-          />
+        {/* Dynamic Add Button based on active tab */}
+        {tab === "routes" ? (
+          <button
+            type="button"
+            onClick={() => setIsAddRouteOpen(true)}
+            className="h-10 rounded-md bg-[#0F2747] px-4 text-sm font-medium text-white hover:bg-[#334E68]"
+          >
+            + Add Route
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsAddOffDayOpen(true)}
+            className="h-10 rounded-md bg-[#0F2747] px-4 text-sm font-medium text-white hover:bg-[#334E68]"
+          >
+            + Mark Off-Day
+          </button>
         )}
       </div>
 

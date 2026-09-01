@@ -16,6 +16,8 @@ import {
   getLatestSlipForDriver,
   isDutySlipSuperseded,
 } from "../utils/dutySlipUtils";
+import Modal from "./Modal";
+import AllocationPicker from "./AllocationPicker";
 
 interface RequisitionDetailProps {
   requisition: Requisition;
@@ -23,7 +25,12 @@ interface RequisitionDetailProps {
   staff: Staff[];
   allocations: Allocation[];
   dutySlips: DutySlip[];
-  onApproveTrip: (requisitionId: string, tripId: string) => void;
+  onApproveTripWithVehicle: (
+    requisitionId: string,
+    tripId: string,
+    vehicleId: string,
+    driverId?: string,
+  ) => void;
   onRejectTrip: (
     requisitionId: string,
     tripId: string,
@@ -53,7 +60,7 @@ export default function RequisitionDetail({
   staff,
   allocations,
   dutySlips,
-  onApproveTrip,
+  onApproveTripWithVehicle,
   onRejectTrip,
   onResetTrip,
   onGenerateConfirmationSlip,
@@ -62,6 +69,21 @@ export default function RequisitionDetail({
   const [rejectingTripId, setRejectingTripId] = useState<string | null>(null);
   const [reason, setReason] = useState<RejectionReason>(REJECTION_REASONS[0]);
   const [remarks, setRemarks] = useState("");
+  const [allocatingTrip, setAllocatingTrip] = useState<Trip | null>(null);
+
+  function handleVehicleSelected(vehicleId: string, driverId?: string) {
+    if (!allocatingTrip) {
+      return;
+    }
+
+    onApproveTripWithVehicle(
+      requisition.id,
+      allocatingTrip.id,
+      vehicleId,
+      driverId,
+    );
+    setAllocatingTrip(null);
+  }
 
   const dutySlipGroups = getEligibleDutySlipGroups(requisition, allocations);
 
@@ -173,6 +195,41 @@ export default function RequisitionDetail({
                         : ""}
                     </p>
                   )}
+
+                  {trip.status === "Approved" &&
+                    (() => {
+                      const allocation = allocations.find(
+                        (item) => item.tripId === trip.id,
+                      );
+
+                      if (!allocation) {
+                        return (
+                          <p className="mt-2 text-xs font-medium text-[#B45309]">
+                            Approved — awaiting vehicle allocation (go to the
+                            Allocation page to assign a vehicle)
+                          </p>
+                        );
+                      }
+
+                      const vehicle = vehicles.find(
+                        (item) => item.id === allocation.vehicleId,
+                      );
+                      const driver = staff.find(
+                        (item) => item.id === allocation.driverId,
+                      );
+
+                      return (
+                        <p className="mt-2 text-xs font-medium text-[#15803D]">
+                          Allocated —{" "}
+                          {vehicle
+                            ? `${vehicle.registrationNumber} (${vehicle.category})`
+                            : "Unknown vehicle"}
+                          {driver
+                            ? ` · Driver: ${driver.name}`
+                            : " · No driver"}
+                        </p>
+                      );
+                    })()}
                 </div>
 
                 <span
@@ -188,10 +245,14 @@ export default function RequisitionDetail({
                 <div className="mt-3 flex gap-3">
                   <button
                     type="button"
-                    onClick={() => onApproveTrip(requisition.id, trip.id)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setRejectingTripId(null);
+                      setAllocatingTrip(trip);
+                    }}
                     className="h-8 rounded-md bg-[#15803D] px-3 text-xs font-medium text-white hover:opacity-90"
                   >
-                    Approve
+                    Approve & Select Vehicle
                   </button>
 
                   <button
@@ -347,6 +408,21 @@ export default function RequisitionDetail({
           </div>
         )}
       </div>
+
+      {allocatingTrip && (
+        <Modal
+          title="Approve Trip — Select Vehicle"
+          onClose={() => setAllocatingTrip(null)}
+          wide
+        >
+          <AllocationPicker
+            trip={allocatingTrip}
+            allocations={allocations}
+            onSelect={handleVehicleSelected}
+            onCancel={() => setAllocatingTrip(null)}
+          />
+        </Modal>
+      )}
     </div>
   );
 }
