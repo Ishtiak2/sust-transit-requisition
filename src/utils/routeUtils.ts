@@ -1,9 +1,4 @@
-import type {
-  RecurringRoute,
-  VehicleOffDay,
-  Weekday,
-  RouteSlot,
-} from "../types";
+import type { VehicleOffDay, Weekday, StudentTransportVehicle } from "../types";
 
 const WEEKDAY_INDEX: Weekday[] = [
   "Sun",
@@ -48,79 +43,42 @@ export function isVehicleOnOffDay(
   return Boolean(getOffDayForVehicleOnDate(vehicleId, dateString, offDays));
 }
 
-export function isRouteVehicle(
-  vehicleId: string,
-  routes: RecurringRoute[],
-): boolean {
-  return routes.some(
-    (route) => route.vehicleId === vehicleId && route.isActive,
-  );
-}
-
-export function hasDuplicateRouteSlot(
-  routes: RecurringRoute[],
-  vehicleId: string,
-  slot: RouteSlot,
-  weekdays: Weekday[],
-  excludeId?: string,
-): boolean {
-  return routes.some(
-    (route) =>
-      route.id !== excludeId &&
-      route.vehicleId === vehicleId &&
-      route.slot === slot &&
-      route.isActive &&
-      route.weekdays.some((day) => weekdays.includes(day)),
-  );
-}
-
-export function getRouteTime(route: RecurringRoute): string | undefined {
-  return route.campusDeparture ?? route.pointDeparture;
-}
-
-export function parseTimeToMinutes(time?: string): number {
-  if (!time) {
-    return Number.MAX_SAFE_INTEGER;
-  }
-
-  const match = time.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-
-  if (!match) {
-    return Number.MAX_SAFE_INTEGER;
-  }
-
-  let hours = parseInt(match[1], 10);
-  const minutes = parseInt(match[2], 10);
-  const period = match[3].toUpperCase();
-
-  if (period === "PM" && hours !== 12) {
-    hours += 12;
-  }
-
-  if (period === "AM" && hours === 12) {
-    hours = 0;
-  }
-
+function toMinutes(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
 }
 
-export function getRoutesForVehicleOnDate(
+export function getStudentTransportEntry(
   vehicleId: string,
-  dateString: string,
-  routes: RecurringRoute[],
-): RecurringRoute[] {
-  const weekday = getWeekdayFromDate(dateString);
+  routes: StudentTransportVehicle[],
+): StudentTransportVehicle | undefined {
+  return routes.find((entry) => entry.vehicleId === vehicleId);
+}
 
-  return routes
-    .filter(
-      (route) =>
-        route.vehicleId === vehicleId &&
-        route.isActive &&
-        route.weekdays.includes(weekday),
-    )
-    .sort(
-      (a, b) =>
-        parseTimeToMinutes(getRouteTime(a)) -
-        parseTimeToMinutes(getRouteTime(b)),
-    );
+export function isVehicleFreeAtTime(
+  vehicleId: string,
+  requestedTime: string,
+  routes: StudentTransportVehicle[],
+): boolean {
+  const entry = getStudentTransportEntry(vehicleId, routes);
+
+  if (!entry) {
+    return true;
+  }
+
+  return toMinutes(requestedTime) >= toMinutes(entry.freeAfterTime);
+}
+
+export function formatTimeDisplay(time: string): string {
+  const [hoursStr, minutes] = time.split(":");
+  let hours = parseInt(hoursStr, 10);
+  const period = hours >= 12 ? "PM" : "AM";
+
+  hours = hours % 12;
+
+  if (hours === 0) {
+    hours = 12;
+  }
+
+  return `${hours}:${minutes} ${period}`;
 }

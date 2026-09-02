@@ -10,23 +10,8 @@ export const WEEKDAYS: Weekday[] = [
   "Sat",
 ];
 
-export type RouteSlot = "Morning" | "Afternoon" | "Evening" | "Night";
-
-export const ROUTE_SLOTS: RouteSlot[] = [
-  "Morning",
-  "Afternoon",
-  "Evening",
-  "Night",
-];
-
-export interface RecurringRoute {
+export interface StudentTransportVehicle {
   id: string;
   vehicleId: string;
-  slot: RouteSlot;
-  campusDeparture?: string;
-  pointDeparture?: string;
-  weekdays: Weekday[];
-  stops: string[];
-  isActive: boolean;
-  notes?: string;
+  freeAfterTime: string;
 }

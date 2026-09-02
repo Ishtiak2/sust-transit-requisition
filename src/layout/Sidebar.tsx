@@ -4,14 +4,13 @@ const navigationItems = [
   { label: "Dashboard", path: "/admin" },
   { label: "Vehicle", path: "/admin/vehicle" },
   { label: "Driver", path: "/admin/driver" },
-  { label: "Routes", path: "/admin/routes" },
+  { label: "Transport Schedule", path: "/admin/routes" },
   { label: "Requisitions", path: "/admin/requisitions" },
-  { label: "Conflicts", path: "/admin/conflicts" },
-  { label: "Notifications", path: "/admin/notifications" },
-  { label: "Mileage", path: "/admin/mileage" },
   // Hidden per request — kept out of nav, files untouched:
   // { label: "Schedule", path: "/admin/schedule" },
   // { label: "Allocation", path: "/admin/allocation" },
+  // Notifications reachable via bell icon's "See More"
+  // Mileage merged into the Requisitions table
 ];
 
 export default function Sidebar() {

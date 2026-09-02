@@ -9,8 +9,14 @@ import DriverForm from "../components/DriverForm";
 import type { Driver } from "../types";
 
 export default function DriverPage() {
-  const { driver, addDriver, updateDriver, deactivateDriver, deleteDriver } =
-    useDriver();
+  const {
+    driver,
+    addDriver,
+    updateDriver,
+    deactivateDriver,
+    activateDriver,
+    deleteDriver,
+  } = useDriver();
   const { vehicles, updateVehicle } = useVehicles();
 
   const [search, setSearch] = useState("");
@@ -62,6 +68,10 @@ export default function DriverPage() {
 
     unassignVehicleIfNeeded(member);
     deactivateDriver(member.id);
+  }
+
+  function handleActivate(member: Driver) {
+    activateDriver(member.id);
   }
 
   function handleDelete(member: Driver) {
@@ -204,13 +214,21 @@ export default function DriverPage() {
                           Edit
                         </button>
 
-                        {member.status === "Active" && (
+                        {member.status === "Active" ? (
                           <button
                             type="button"
                             onClick={() => handleDeactivate(member)}
                             className="text-sm font-medium text-[#B45309] hover:underline"
                           >
                             Deactivate
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleActivate(member)}
+                            className="text-sm font-medium text-[#15803D] hover:underline"
+                          >
+                            Activate
                           </button>
                         )}
 

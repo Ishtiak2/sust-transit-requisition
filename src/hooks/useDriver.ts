@@ -15,11 +15,20 @@ export default function useDriver() {
     }
   }
 
+  function activateDriver(id: string) {
+    const member = items.find((item) => item.id === id);
+
+    if (member) {
+      update({ ...member, status: "Active" });
+    }
+  }
+
   return {
     driver: items,
     addDriver: add,
     updateDriver: update,
     deactivateDriver,
+    activateDriver,
     deleteDriver: remove,
   };
 }

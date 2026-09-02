@@ -5,9 +5,11 @@ import useAllocations from "../hooks/useAllocations";
 import useVehicles from "../hooks/useVehicles";
 import useDriver from "../hooks/useDriver";
 import useDutySlips from "../hooks/useDutySlips";
+import useMileageEntries from "../hooks/useMileageEntries";
 
 import Modal from "../components/Modal";
 import RequisitionDetail from "../components/RequisitionDetail";
+import MileageEntryForm from "../components/MileageEntryForm";
 
 import {
   isInActiveQueue,
@@ -17,6 +19,10 @@ import {
 import { getEligibleDutySlipGroups } from "../utils/dutySlipUtils";
 import { generateConfirmationSlip } from "../utils/pdf/confirmationSlip";
 import { generateDutySlipPdf } from "../utils/pdf/dutySlip";
+import {
+  getMileageColumnStatus,
+  type MileageTripContext,
+} from "../utils/mileageUtils";
 
 import type { ApplicationStatus } from "../types";
 
@@ -32,16 +38,20 @@ function statusBadgeClass(status: ApplicationStatus) {
 }
 
 export default function RequisitionsPage() {
-  const { requisitions, approveTrip, rejectTrip, resetTripDecision } =
+  const { requisitions, approveTrip, rejectTrip, resetTripDecision, markReadyForAccounts } =
     useRequisitions();
   const { allocations, addAllocation, updateAllocation, removeAllocation } =
     useAllocations();
   const { vehicles } = useVehicles();
   const { driver } = useDriver();
   const { dutySlips, addDutySlip } = useDutySlips();
+  const { mileageEntries, addMileageEntry } = useMileageEntries();
 
   const [tab, setTab] = useState<Tab>("queue");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mileageTarget, setMileageTarget] = useState<MileageTripContext | null>(
+    null,
+  );
 
   const sorted = [...requisitions].sort((a, b) =>
     a.createdAt.localeCompare(b.createdAt),
@@ -91,6 +101,8 @@ export default function RequisitionsPage() {
     });
   }
 
+  // Reserved for a future in-modal reassign flow. Kept here so we don't
+  // reintroduce the existing AllocationPicker path twice.
   function handleReassignTrip(
     tripId: string,
     vehicleId: string,
@@ -106,6 +118,8 @@ export default function RequisitionsPage() {
         allocatedAt: new Date().toISOString(),
       });
     }
+
+    void tripId;
   }
 
   function handleResetTrip(requisitionId: string, tripId: string) {
@@ -129,11 +143,11 @@ export default function RequisitionsPage() {
     const group = getEligibleDutySlipGroups(selected, allocations).find(
       (item) => item.driverId === driverId,
     );
-    const driver = driver.find((member) => member.id === driverId);
+    const driverMember = driver.find((member) => member.id === driverId);
 
-    if (!group || !driver) return;
+    if (!group || !driverMember) return;
 
-    generateDutySlipPdf(selected, driver, group.trips, vehicles);
+    generateDutySlipPdf(selected, driverMember, group.trips, vehicles);
 
     addDutySlip({
       id: crypto.randomUUID(),
@@ -145,6 +159,23 @@ export default function RequisitionsPage() {
       })),
       generatedAt: new Date().toISOString(),
     });
+  }
+
+  function handleRecordMileage(distanceKm: number) {
+    if (!mileageTarget) {
+      return;
+    }
+
+    addMileageEntry({
+      id: crypto.randomUUID(),
+      requisitionId: mileageTarget.requisition.id,
+      tripId: mileageTarget.trip.id,
+      distanceKm,
+      recordedAt: new Date().toISOString(),
+    });
+
+    markReadyForAccounts(mileageTarget.requisition.id);
+    setMileageTarget(null);
   }
 
   return (
@@ -191,13 +222,14 @@ export default function RequisitionsPage() {
                 <th className="px-4 py-3 font-medium">Date Range</th>
                 <th className="px-4 py-3 font-medium">Trips</th>
                 <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Mileage</th>
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
+                  <td colSpan={8} className="px-4 py-12 text-center">
                     <p className="font-medium text-[#1E293B]">
                       No requisitions found
                     </p>
@@ -209,6 +241,12 @@ export default function RequisitionsPage() {
               ) : (
                 filtered.map((requisition, index) => {
                   const counts = getTripStatusCounts(requisition.trips);
+                  const mileageStatus = getMileageColumnStatus(
+                    requisition,
+                    allocations,
+                    mileageEntries,
+                  );
+
                   return (
                     <tr
                       key={requisition.id}
@@ -242,6 +280,35 @@ export default function RequisitionsPage() {
                         >
                           {requisition.status}
                         </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {mileageStatus.kind === "not-applicable" && (
+                          <span className="text-[#64748B]">—</span>
+                        )}
+                        {mileageStatus.kind === "not-ready" && (
+                          <span
+                            className="text-[#64748B]"
+                            title="Approve and allocate a vehicle first"
+                          >
+                            —
+                          </span>
+                        )}
+                        {mileageStatus.kind === "recorded" && (
+                          <span className="font-medium text-[#15803D]">
+                            {mileageStatus.distanceKm} km
+                          </span>
+                        )}
+                        {mileageStatus.kind === "awaiting" && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setMileageTarget(mileageStatus.context)
+                            }
+                            className="text-sm font-medium text-[#334E68] hover:underline"
+                          >
+                            Record Mileage
+                          </button>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
@@ -278,6 +345,16 @@ export default function RequisitionsPage() {
             onResetTrip={handleResetTrip}
             onGenerateConfirmationSlip={handleGenerateConfirmationSlip}
             onGenerateDutySlip={handleGenerateDutySlip}
+          />
+        </Modal>
+      )}
+
+      {mileageTarget && (
+        <Modal title="Record Mileage" onClose={() => setMileageTarget(null)}>
+          <MileageEntryForm
+            trip={mileageTarget.trip}
+            onSubmit={handleRecordMileage}
+            onCancel={() => setMileageTarget(null)}
           />
         </Modal>
       )}

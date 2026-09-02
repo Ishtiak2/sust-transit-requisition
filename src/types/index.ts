@@ -4,9 +4,9 @@ export type { Vehicle, VehicleCategory, VehicleStatus } from "./vehicle";
 
 export type { DriverDesignation, Driver, DriverStatus } from "./driver";
 
-export { WEEKDAYS, ROUTE_SLOTS } from "./route";
+export { WEEKDAYS } from "./route";
 
-export type { Weekday, RouteSlot, RecurringRoute } from "./route";
+export type { Weekday, StudentTransportVehicle } from "./route";
 export type { MileageEntry } from "./mileage";
 export type { OffDayType, VehicleOffDay } from "./offday";
 export type { Allocation } from "./allocation";
