@@ -6,16 +6,11 @@ const navigationItems = [
   { label: "Driver", path: "/admin/driver" },
   { label: "Transport Schedule", path: "/admin/routes" },
   { label: "Requisitions", path: "/admin/requisitions" },
-  // Hidden per request — kept out of nav, files untouched:
-  // { label: "Schedule", path: "/admin/schedule" },
-  // { label: "Allocation", path: "/admin/allocation" },
-  // Notifications reachable via bell icon's "See More"
-  // Mileage merged into the Requisitions table
 ];
 
 export default function Sidebar() {
   return (
-    <aside className="flex h-full w-56 flex-col border-r border-[#E2E8F0] bg-white">
+    <aside className="flex min-h-screen w-56 flex-col border-r border-border bg-card">
       <nav className="flex-1 space-y-1 p-3">
         {navigationItems.map((item) => (
           <NavLink
@@ -25,8 +20,8 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `block rounded-md px-3 py-2 text-sm font-medium ${
                 isActive
-                  ? "bg-[#0F2747] text-white"
-                  : "text-[#334E68] hover:bg-[#F8FAFC]"
+                  ? "bg-primary text-white"
+                  : "text-secondary hover:bg-surface"
               }`
             }
           >
