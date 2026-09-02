@@ -3,8 +3,8 @@ import { createBrowserRouter } from "react-router-dom";
 import AdminLayout from "./layout/AdminLayout";
 
 import DashboardPage from "./pages/DashboardPage";
-import FleetPage from "./pages/FleetPage";
-import StaffPage from "./pages/StaffPage";
+import VehiclePage from "./pages/VehiclePage";
+import DriverPage from "./pages/DriverPage";
 import RoutesPage from "./pages/RoutesPage";
 import SchedulePage from "./pages/SchedulePage";
 import AllocationPage from "./pages/AllocationPage";
@@ -29,12 +29,12 @@ const router = createBrowserRouter([
         element: <DashboardPage />,
       },
       {
-        path: "fleet",
-        element: <FleetPage />,
+        path: "vehicle",
+        element: <VehiclePage />,
       },
       {
-        path: "staff",
-        element: <StaffPage />,
+        path: "driver",
+        element: <DriverPage />,
       },
       {
         path: "routes",
@@ -65,7 +65,7 @@ const router = createBrowserRouter([
         element: <MileagePage />,
       },
       {
-        path: "fleet/:vehicleId",
+        path: "vehicle/:vehicleId",
         element: <VehicleDetailsPage />,
       },
     ],

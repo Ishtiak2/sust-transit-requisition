@@ -365,7 +365,7 @@ export default function RouteForm({
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           rows={2}
-          placeholder="e.g. Library Trip, Staff Trip"
+          placeholder="e.g. Library Trip, Driver Trip"
           className="w-full rounded-md border border-[#E2E8F0] px-3 py-2 text-sm text-[#1E293B] outline-none placeholder:text-[#64748B] focus:border-[#334E68] focus:ring-1 focus:ring-[#334E68]"
         />
       </div>

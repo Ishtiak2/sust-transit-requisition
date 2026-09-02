@@ -3,7 +3,7 @@ import { useState } from "react";
 import useRequisitions from "../hooks/useRequisitions";
 import useAllocations from "../hooks/useAllocations";
 import useVehicles from "../hooks/useVehicles";
-import useStaff from "../hooks/useStaff";
+import useDriver from "../hooks/useDriver";
 import useDutySlips from "../hooks/useDutySlips";
 
 import Modal from "../components/Modal";
@@ -37,7 +37,7 @@ export default function RequisitionsPage() {
   const { allocations, addAllocation, updateAllocation, removeAllocation } =
     useAllocations();
   const { vehicles } = useVehicles();
-  const { staff } = useStaff();
+  const { driver } = useDriver();
   const { dutySlips, addDutySlip } = useDutySlips();
 
   const [tab, setTab] = useState<Tab>("queue");
@@ -120,7 +120,7 @@ export default function RequisitionsPage() {
 
   function handleGenerateConfirmationSlip() {
     if (!selected) return;
-    generateConfirmationSlip(selected, allocations, vehicles, staff);
+    generateConfirmationSlip(selected, allocations, vehicles, driver);
   }
 
   function handleGenerateDutySlip(driverId: string) {
@@ -129,7 +129,7 @@ export default function RequisitionsPage() {
     const group = getEligibleDutySlipGroups(selected, allocations).find(
       (item) => item.driverId === driverId,
     );
-    const driver = staff.find((member) => member.id === driverId);
+    const driver = driver.find((member) => member.id === driverId);
 
     if (!group || !driver) return;
 
@@ -270,7 +270,7 @@ export default function RequisitionsPage() {
           <RequisitionDetail
             requisition={selected}
             vehicles={vehicles}
-            staff={staff}
+            driver={driver}
             allocations={allocations}
             dutySlips={dutySlips}
             onApproveTripWithVehicle={handleApproveTripWithVehicle}

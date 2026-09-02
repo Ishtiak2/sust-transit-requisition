@@ -1,6 +1,6 @@
 export const STORAGE_KEYS = {
   vehicles: "sust-transit-vehicles",
-  staff: "sust-transit-staff",
+  driver: "sust-transit-driver",
   routes: "sust-transit-routes",
   requisitions: "sust-transit-requisitions",
   allocations: "sust-transit-allocations",

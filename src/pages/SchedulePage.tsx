@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import useVehicles from "../hooks/useVehicles";
-import useStaff from "../hooks/useStaff";
+import useDriver from "../hooks/useDriver";
 import useRoutes from "../hooks/useRoutes";
 import useOffDays from "../hooks/useOffDays";
 
@@ -20,7 +20,7 @@ function todayString(): string {
 
 export default function SchedulePage() {
   const { vehicles } = useVehicles();
-  const { staff } = useStaff();
+  const { driver } = useDriver();
   const { routes } = useRoutes();
   const { offDays } = useOffDays();
 
@@ -29,7 +29,7 @@ export default function SchedulePage() {
   const [selectedDriverId, setSelectedDriverId] = useState("");
   const [date, setDate] = useState(todayString());
 
-  const activeDrivers = staff.filter((member) => member.status === "Active");
+  const activeDrivers = driver.filter((member) => member.status === "Active");
 
   const selectedDriver = activeDrivers.find(
     (member) => member.id === selectedDriverId,
@@ -55,7 +55,7 @@ export default function SchedulePage() {
       : [];
 
   const assignedDriver = targetVehicle?.permanentDriverId
-    ? staff.find((member) => member.id === targetVehicle.permanentDriverId)
+    ? driver.find((member) => member.id === targetVehicle.permanentDriverId)
     : undefined;
 
   function formatDate(dateString: string) {
@@ -189,7 +189,7 @@ export default function SchedulePage() {
             </p>
 
             <p className="mt-1 text-sm text-[#64748B]">
-              Assign a vehicle to this driver from Fleet Management to see their
+              Assign a vehicle to this driver from Vehicle Management to see their
               schedule.
             </p>
           </div>

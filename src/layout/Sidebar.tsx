@@ -2,8 +2,8 @@ import { NavLink } from "react-router-dom";
 
 const navigationItems = [
   { label: "Dashboard", path: "/admin" },
-  { label: "Vehicle", path: "/admin/fleet" },
-  { label: "Driver", path: "/admin/staff" },
+  { label: "Vehicle", path: "/admin/vehicle" },
+  { label: "Driver", path: "/admin/driver" },
   { label: "Routes", path: "/admin/routes" },
   { label: "Requisitions", path: "/admin/requisitions" },
   { label: "Conflicts", path: "/admin/conflicts" },

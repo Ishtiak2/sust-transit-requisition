@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import useVehicles from "../hooks/useVehicles";
-import useStaff from "../hooks/useStaff";
+import useDriver from "../hooks/useDriver";
 import useRoutes from "../hooks/useRoutes";
 import useOffDays from "../hooks/useOffDays";
 
@@ -24,7 +24,7 @@ export default function AllocationPicker({
   onCancel,
 }: AllocationPickerProps) {
   const { vehicles } = useVehicles();
-  const { staff } = useStaff();
+  const { driver } = useDriver();
   const { routes } = useRoutes();
   const { offDays } = useOffDays();
 
@@ -50,7 +50,7 @@ export default function AllocationPicker({
       return undefined;
     }
 
-    return staff.find((member) => member.id === driverId)?.name;
+    return driver.find((member) => member.id === driverId)?.name;
   }
 
   return (

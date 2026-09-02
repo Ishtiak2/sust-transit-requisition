@@ -2,13 +2,13 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import { PDF_COLORS, drawHeader, drawFooter } from "./pdfTheme";
-import type { Requisition, Allocation, Vehicle, Staff } from "../../types";
+import type { Requisition, Allocation, Vehicle, Driver } from "../../types";
 
 export function generateConfirmationSlip(
   requisition: Requisition,
   allocations: Allocation[],
   vehicles: Vehicle[],
-  staff: Staff[],
+  driver: Driver[],
 ) {
   const doc = new jsPDF();
 
@@ -52,7 +52,7 @@ export function generateConfirmationSlip(
       ? vehicles.find((item) => item.id === allocation.vehicleId)
       : undefined;
     const driver = allocation?.driverId
-      ? staff.find((item) => item.id === allocation.driverId)
+      ? driver.find((item) => item.id === allocation.driverId)
       : undefined;
 
     return [

@@ -2,7 +2,7 @@ export { VEHICLE_CATEGORIES, VEHICLE_STATUSES } from "./vehicle";
 
 export type { Vehicle, VehicleCategory, VehicleStatus } from "./vehicle";
 
-export type { DriverDesignation, Staff, StaffStatus } from "./staff";
+export type { DriverDesignation, Driver, DriverStatus } from "./driver";
 
 export { WEEKDAYS, ROUTE_SLOTS } from "./route";
 
@@ -39,4 +39,4 @@ export const DRIVER_DESIGNATIONS = [
   "Driver (Outsourced)",
 ] as const;
 
-export const STAFF_STATUSES = ["Active", "Inactive"] as const;
+export const DRIVER_STATUSES = ["Active", "Inactive"] as const;

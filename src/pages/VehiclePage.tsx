@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import useVehicles from "../hooks/useVehicles";
-import useStaff from "../hooks/useStaff";
+import useDriver from "../hooks/useDriver";
 
 import StatusBadge from "../components/StatusBadge";
 import Modal from "../components/Modal";
@@ -9,10 +9,10 @@ import VehicleForm from "../components/VehicleForm";
 
 import type { Vehicle } from "../types";
 
-export default function FleetPage() {
+export default function VehiclePage() {
   const { vehicles, addVehicle, updateVehicle, deleteVehicle } = useVehicles();
 
-  const { staff, updateStaff } = useStaff();
+  const { driver, updateDriver } = useDriver();
 
   const [search, setSearch] = useState("");
 
@@ -41,7 +41,7 @@ export default function FleetPage() {
       return "No Driver";
     }
 
-    const driver = staff.find((member) => member.id === driverId);
+    const driver = driver.find((member) => member.id === driverId);
 
     return driver?.name ?? "No Driver";
   }
@@ -56,7 +56,7 @@ export default function FleetPage() {
      */
     if (!oldVehicle) {
       if (newDriverId) {
-        const driver = staff.find((member) => member.id === newDriverId);
+        const driver = driver.find((member) => member.id === newDriverId);
 
         if (!driver) {
           throw new Error("Selected driver was not found.");
@@ -80,7 +80,7 @@ export default function FleetPage() {
 
         addVehicle(vehicle);
 
-        updateStaff({
+        updateDriver({
           ...driver,
           permanentVehicleId: vehicle.id,
         });
@@ -110,7 +110,7 @@ export default function FleetPage() {
      * A new driver was selected.
      */
     if (newDriverId) {
-      const newDriver = staff.find((member) => member.id === newDriverId);
+      const newDriver = driver.find((member) => member.id === newDriverId);
 
       if (!newDriver) {
         throw new Error("Selected driver was not found.");
@@ -136,12 +136,12 @@ export default function FleetPage() {
      * vehicle assignment.
      */
     if (oldVehicle.permanentDriverId) {
-      const oldDriver = staff.find(
+      const oldDriver = driver.find(
         (member) => member.id === oldVehicle.permanentDriverId,
       );
 
       if (oldDriver) {
-        updateStaff({
+        updateDriver({
           ...oldDriver,
           permanentVehicleId: undefined,
         });
@@ -153,10 +153,10 @@ export default function FleetPage() {
      * to this vehicle.
      */
     if (newDriverId) {
-      const newDriver = staff.find((member) => member.id === newDriverId);
+      const newDriver = driver.find((member) => member.id === newDriverId);
 
       if (newDriver) {
-        updateStaff({
+        updateDriver({
           ...newDriver,
           permanentVehicleId: vehicle.id,
         });
@@ -184,12 +184,12 @@ export default function FleetPage() {
      * assignment first.
      */
     if (vehicle.permanentDriverId) {
-      const driver = staff.find(
+      const driver = driver.find(
         (member) => member.id === vehicle.permanentDriverId,
       );
 
       if (driver) {
-        updateStaff({
+        updateDriver({
           ...driver,
           permanentVehicleId: undefined,
         });

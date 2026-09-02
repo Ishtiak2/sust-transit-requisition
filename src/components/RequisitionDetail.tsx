@@ -6,7 +6,7 @@ import {
   type RejectionReason,
   type Trip,
   type Vehicle,
-  type Staff,
+  type Driver,
   type Allocation,
   type DutySlip,
 } from "../types";
@@ -22,7 +22,7 @@ import AllocationPicker from "./AllocationPicker";
 interface RequisitionDetailProps {
   requisition: Requisition;
   vehicles: Vehicle[];
-  staff: Staff[];
+  driver: Driver[];
   allocations: Allocation[];
   dutySlips: DutySlip[];
   onApproveTripWithVehicle: (
@@ -57,7 +57,7 @@ function statusBadgeClass(status: Trip["status"]) {
 export default function RequisitionDetail({
   requisition,
   vehicles,
-  staff,
+  driver,
   allocations,
   dutySlips,
   onApproveTripWithVehicle,
@@ -214,7 +214,7 @@ export default function RequisitionDetail({
                       const vehicle = vehicles.find(
                         (item) => item.id === allocation.vehicleId,
                       );
-                      const driver = staff.find(
+                      const driver = driver.find(
                         (item) => item.id === allocation.driverId,
                       );
 
@@ -356,7 +356,7 @@ export default function RequisitionDetail({
         ) : (
           <div className="space-y-2">
             {dutySlipGroups.map((group) => {
-              const driver = staff.find(
+              const driver = driver.find(
                 (member) => member.id === group.driverId,
               );
               const latestSlip = getLatestSlipForDriver(
