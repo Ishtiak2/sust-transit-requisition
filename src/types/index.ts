@@ -6,7 +6,11 @@ export type { DriverDesignation, Driver, DriverStatus } from "./driver";
 
 export { WEEKDAYS } from "./route";
 
-export type { Weekday, StudentTransportVehicle } from "./route";
+export type {
+  Weekday,
+  StudentTransportVehicle,
+  StudentTransportSchedule,
+} from "./route";
 export type { MileageEntry } from "./mileage";
 export type { OffDayType, VehicleOffDay } from "./offday";
 export type { Allocation } from "./allocation";

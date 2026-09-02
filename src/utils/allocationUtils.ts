@@ -147,18 +147,19 @@ export function getVehicleEligibility(
     );
   }
 
-  const studentTransportEntry = getStudentTransportEntry(
+  const studentTransportTime = getStudentTransportTimeForDate(
     vehicle.id,
+    trip.date,
     context.routes,
   );
 
   if (
-    studentTransportEntry &&
-    !isVehicleFreeAtTime(vehicle.id, trip.startTime, context.routes)
+    studentTransportTime &&
+    !isVehicleFreeAtTime(vehicle.id, trip.date, trip.startTime, context.routes)
   ) {
     blockers.push(
-      `Used for student transport until ${formatTimeDisplay(
-        studentTransportEntry.freeAfterTime,
+      `Used for student transport on ${trip.date} until ${formatTimeDisplay(
+        studentTransportTime,
       )} — not free yet`,
     );
   }

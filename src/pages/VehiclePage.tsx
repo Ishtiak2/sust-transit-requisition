@@ -8,6 +8,7 @@ import Modal from "../components/Modal";
 import VehicleForm from "../components/VehicleForm";
 
 import type { Vehicle } from "../types";
+import { isDuplicateRegistration } from "../utils/vehicleUtils";
 
 export default function VehiclePage() {
   const { vehicles, addVehicle, updateVehicle, deleteVehicle } = useVehicles();
@@ -41,13 +42,25 @@ export default function VehiclePage() {
       return "No Driver";
     }
 
-    const driver = driver.find((member) => member.id === driverId);
+    const foundDriver = driver.find((member) => member.id === driverId);
 
-    return driver?.name ?? "No Driver";
+    return foundDriver?.name ?? "No Driver";
   }
 
   function handleVehicleSubmit(vehicle: Vehicle) {
     const oldVehicle = vehicles.find((item) => item.id === vehicle.id);
+
+    if (
+      isDuplicateRegistration(
+        vehicles,
+        vehicle.registrationNumber,
+        vehicle.id,
+      )
+    ) {
+      throw new Error(
+        `Registration number "${vehicle.registrationNumber}" is already registered.`,
+      );
+    }
 
     const newDriverId = vehicle.permanentDriverId;
 
@@ -56,13 +69,15 @@ export default function VehiclePage() {
      */
     if (!oldVehicle) {
       if (newDriverId) {
-        const driver = driver.find((member) => member.id === newDriverId);
+        const foundDriver = driver.find(
+          (member) => member.id === newDriverId,
+        );
 
-        if (!driver) {
+        if (!foundDriver) {
           throw new Error("Selected driver was not found.");
         }
 
-        if (driver.status !== "Active") {
+        if (foundDriver.status !== "Active") {
           throw new Error("Inactive drivers cannot be assigned.");
         }
 
@@ -72,7 +87,7 @@ export default function VehiclePage() {
          * Normally this cannot happen because
          * VehicleForm hides assigned drivers.
          */
-        if (driver.permanentVehicleId) {
+        if (foundDriver.permanentVehicleId) {
           throw new Error(
             "This driver is already assigned to another vehicle.",
           );
@@ -81,7 +96,7 @@ export default function VehiclePage() {
         addVehicle(vehicle);
 
         updateDriver({
-          ...driver,
+          ...foundDriver,
           permanentVehicleId: vehicle.id,
         });
       } else {
@@ -184,13 +199,13 @@ export default function VehiclePage() {
      * assignment first.
      */
     if (vehicle.permanentDriverId) {
-      const driver = driver.find(
+      const foundDriver = driver.find(
         (member) => member.id === vehicle.permanentDriverId,
       );
 
-      if (driver) {
+      if (foundDriver) {
         updateDriver({
-          ...driver,
+          ...foundDriver,
           permanentVehicleId: undefined,
         });
       }
@@ -359,6 +374,8 @@ export default function VehiclePage() {
 
                 <th className="px-4 py-3 font-medium">Status</th>
 
+                <th className="px-4 py-3 font-medium">Reserved For</th>
+
                 <th className="px-4 py-3 font-medium">Requisition</th>
 
                 <th
@@ -377,7 +394,7 @@ export default function VehiclePage() {
               {filteredVehicles.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="
                       px-4 py-12
                       text-center
@@ -452,6 +469,10 @@ export default function VehiclePage() {
 
                     <td className="px-4 py-3">
                       <StatusBadge status={vehicle.operationalStatus} />
+                    </td>
+
+                    <td className="px-4 py-3 text-[#64748B]">
+                      {vehicle.reservedFor ?? "—"}
                     </td>
 
                     <td className="px-4 py-3">

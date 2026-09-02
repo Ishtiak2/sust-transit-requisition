@@ -8,8 +8,15 @@ import Modal from "../components/Modal";
 import RouteForm from "../components/RouteForm";
 import OffDayForm from "../components/OffDayForm";
 
-import { formatTimeDisplay } from "../utils/routeUtils";
-import type { StudentTransportVehicle } from "../types";
+import {
+  formatTimeDisplay,
+  formatScheduledDays,
+  getScheduledDays,
+} from "../utils/routeUtils";
+import type {
+  StudentTransportVehicle,
+  StudentTransportSchedule,
+} from "../types";
 
 type Tab = "schedule" | "offdays";
 
@@ -46,6 +53,31 @@ export default function RoutesPage() {
       addRoute(entry);
       setIsAddRouteOpen(false);
     }
+  }
+
+  function formatFreeAfterSummary(schedule: StudentTransportSchedule) {
+    const days = getScheduledDays(schedule);
+
+    if (days.length === 0) {
+      return "—";
+    }
+
+    const first = days[0];
+    const firstTime = schedule[first];
+    const allSame = days.every((day) => schedule[day] === firstTime);
+
+    if (allSame && firstTime) {
+      return formatTimeDisplay(firstTime);
+    }
+
+    return days.map((day) => (
+      <div key={day} className="text-xs leading-5">
+        <span className="font-medium text-[#1E293B]">{day}:</span>{" "}
+        <span className="text-[#334E68]">
+          {formatTimeDisplay(schedule[day] ?? "")}
+        </span>
+      </div>
+    ));
   }
 
   function handleDeleteRoute(entry: StudentTransportVehicle) {
@@ -136,6 +168,7 @@ export default function RoutesPage() {
                 <tr>
                   <th className="px-4 py-3 font-medium">Vehicle Number</th>
                   <th className="px-4 py-3 font-medium">Vehicle Category</th>
+                  <th className="px-4 py-3 font-medium">Scheduled Days</th>
                   <th className="px-4 py-3 font-medium">Free After</th>
                   <th className="px-4 py-3 text-right font-medium">Actions</th>
                 </tr>
@@ -144,7 +177,7 @@ export default function RoutesPage() {
               <tbody>
                 {routes.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-12 text-center">
+                    <td colSpan={5} className="px-4 py-12 text-center">
                       <p className="font-medium text-[#1E293B]">
                         No student transport vehicles found
                       </p>
@@ -174,7 +207,11 @@ export default function RoutesPage() {
                         </td>
 
                         <td className="px-4 py-3 font-medium text-[#334E68]">
-                          {formatTimeDisplay(entry.freeAfterTime)}
+                          {formatScheduledDays(entry.schedule)}
+                        </td>
+
+                        <td className="px-4 py-3">
+                          {formatFreeAfterSummary(entry.schedule)}
                         </td>
 
                         <td className="px-4 py-3 text-right">
@@ -290,7 +327,7 @@ export default function RoutesPage() {
 
       {/* Edit Vehicle Modal */}
       {editingRoute && (
-        <Modal title="Edit Free After Time" onClose={() => setEditingRoute(null)}>
+        <Modal title="Edit Student Transport Schedule" onClose={() => setEditingRoute(null)}>
           <RouteForm
             route={editingRoute}
             onSubmit={handleRouteSubmit}

@@ -8,7 +8,7 @@ import useOffDays from "../hooks/useOffDays";
 import {
   getWeekdayFromDate,
   getOffDayForVehicleOnDate,
-  getStudentTransportEntry,
+  getStudentTransportTimeForDate,
   formatTimeDisplay,
 } from "../utils/routeUtils";
 
@@ -49,9 +49,9 @@ export default function SchedulePage() {
       ? getOffDayForVehicleOnDate(targetVehicleId, date, offDays)
       : undefined;
 
-  const studentTransportEntry =
+  const studentTransportTime =
     targetVehicleId && date
-      ? getStudentTransportEntry(targetVehicleId, routes)
+      ? getStudentTransportTimeForDate(targetVehicleId, date, routes)
       : undefined;
 
   const assignedDriver = targetVehicle?.permanentDriverId
@@ -266,7 +266,7 @@ export default function SchedulePage() {
                 Student Transport
               </p>
 
-              {studentTransportEntry ? (
+              {studentTransportTime ? (
                 <div
                   className={`rounded-md border px-4 py-3 ${
                     offDay
@@ -275,18 +275,19 @@ export default function SchedulePage() {
                   }`}
                 >
                   <p className="text-sm font-medium text-[#1E293B]">
-                    Used for student transport until{" "}
-                    {formatTimeDisplay(studentTransportEntry.freeAfterTime)}
+                    Used for student transport on this day until{" "}
+                    {formatTimeDisplay(studentTransportTime)}
                   </p>
 
                   <p className="mt-1 text-sm text-[#64748B]">
-                    Requisition allocations cannot start before this time.
+                    Requisition allocations cannot start before this time on{" "}
+                    {weekday}.
                   </p>
                 </div>
               ) : (
                 <p className="rounded-md border border-dashed border-[#E2E8F0] px-4 py-6 text-center text-sm text-[#64748B]">
-                  This vehicle is not on the student transport schedule —
-                  available all day.
+                  This vehicle is free all day on {weekday ?? "this date"} —
+                  no student transport schedule applies.
                 </p>
               )}
             </div>

@@ -10,8 +10,15 @@ export const WEEKDAYS: Weekday[] = [
   "Sat",
 ];
 
+export type StudentTransportSchedule = Partial<Record<Weekday, string>>;
+
 export interface StudentTransportVehicle {
   id: string;
   vehicleId: string;
-  freeAfterTime: string;
+  /*
+   * Free-after time keyed by weekday.
+   * Days that are not keys (or whose value is empty) mean
+   * the vehicle is free all day on that weekday.
+   */
+  schedule: StudentTransportSchedule;
 }

@@ -134,7 +134,7 @@ export function detectConflicts(
       }
     });
 
-    if (!isVehicleFreeAtTime(vehicle.id, allocation.startTime, routes)) {
+    if (!isVehicleFreeAtTime(vehicle.id, allocation.date, allocation.startTime, routes)) {
       conflicts.push({
         id: `student-transport-${allocation.id}`,
         type: "Student Transport Conflict",
@@ -143,7 +143,7 @@ export function detectConflicts(
         allocation,
         requisition,
         trip,
-        description: `${vehicle.registrationNumber} is used for student transport in the morning but is allocated to a trip starting at ${allocation.startTime}.`,
+        description: `${vehicle.registrationNumber} is used for student transport on ${allocation.date} but is allocated to a trip starting at ${allocation.startTime}.`,
       });
     }
   });
