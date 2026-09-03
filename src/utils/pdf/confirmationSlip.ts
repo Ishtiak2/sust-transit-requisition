@@ -51,7 +51,7 @@ export function generateConfirmationSlip(
     const vehicle = allocation
       ? vehicles.find((item) => item.id === allocation.vehicleId)
       : undefined;
-    const driver = allocation?.driverId
+    const assignedDriver = allocation?.driverId
       ? driver.find((item) => item.id === allocation.driverId)
       : undefined;
 
@@ -61,7 +61,7 @@ export function generateConfirmationSlip(
       vehicle
         ? `${vehicle.registrationNumber}\n${vehicle.category}`
         : "Not allocated",
-      driver ? `${driver.name}\n${driver.phone ?? ""}` : "—",
+      assignedDriver ? `${assignedDriver.name}\n${assignedDriver.phone ?? ""}` : "—",
       trip.stoppageSequence.join(" -> ") || trip.route,
       trip.status === "Rejected"
         ? `Rejected\n${trip.rejectionReason ?? ""}${

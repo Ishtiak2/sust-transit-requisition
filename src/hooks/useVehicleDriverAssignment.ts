@@ -42,16 +42,16 @@ export default function useVehicleDriverAssignment() {
     }
 
     // 2. Validate target driver before performing any state mutations
-    const driver = driver.find((item) => item.id === driverId);
+    const targetDriver = driver.find((item) => item.id === driverId);
 
-    if (!driver) {
+    if (!targetDriver) {
       return {
         success: false,
         message: "Driver not found.",
       };
     }
 
-    if (driver.status !== "Active") {
+    if (targetDriver.status !== "Active") {
       return {
         success: false,
         message: "Inactive drivers cannot be assigned.",

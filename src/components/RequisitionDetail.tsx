@@ -214,7 +214,7 @@ export default function RequisitionDetail({
                       const vehicle = vehicles.find(
                         (item) => item.id === allocation.vehicleId,
                       );
-                      const driver = driver.find(
+                      const assignedDriver = driver.find(
                         (item) => item.id === allocation.driverId,
                       );
 
@@ -224,8 +224,8 @@ export default function RequisitionDetail({
                           {vehicle
                             ? `${vehicle.registrationNumber} (${vehicle.category})`
                             : "Unknown vehicle"}
-                          {driver
-                            ? ` · Driver: ${driver.name}`
+                          {assignedDriver
+                            ? ` · Driver: ${assignedDriver.name}`
                             : " · No driver"}
                         </p>
                       );
@@ -356,7 +356,7 @@ export default function RequisitionDetail({
         ) : (
           <div className="space-y-2">
             {dutySlipGroups.map((group) => {
-              const driver = driver.find(
+              const assignedDriver = driver.find(
                 (member) => member.id === group.driverId,
               );
               const latestSlip = getLatestSlipForDriver(
@@ -375,7 +375,7 @@ export default function RequisitionDetail({
                 >
                   <div>
                     <p className="text-sm font-medium text-[#1E293B]">
-                      {driver?.name ?? "Unknown Driver"}
+                      {assignedDriver?.name ?? "Unknown Driver"}
                     </p>
 
                     <p className="text-xs text-[#64748B]">

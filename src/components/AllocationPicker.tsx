@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import useVehicles from "../hooks/useVehicles";
 import useDriver from "../hooks/useDriver";
 import useRoutes from "../hooks/useRoutes";
@@ -28,13 +26,8 @@ export default function AllocationPicker({
   const { routes } = useRoutes();
   const { offDays } = useOffDays();
 
-  const [showAllCategories, setShowAllCategories] = useState(false);
-
-  const candidateVehicles = showAllCategories
-    ? vehicles
-    : vehicles.filter((vehicle) => vehicle.category === trip.vehicleCategory);
-
-  const evaluated = candidateVehicles
+  const evaluated = vehicles
+    .filter((vehicle) => vehicle.category === trip.vehicleCategory)
     .map((vehicle) =>
       getVehicleEligibility(vehicle, trip, {
         allocations,
@@ -43,7 +36,7 @@ export default function AllocationPicker({
         excludeAllocationId,
       }),
     )
-    .sort((a, b) => Number(b.eligible) - Number(a.eligible));
+    .filter((result) => result.eligible);
 
   function getDriverName(driverId?: string) {
     if (!driverId) {
@@ -62,15 +55,6 @@ export default function AllocationPicker({
 
         <p className="mt-1 text-[#64748B]">{trip.route}</p>
       </div>
-
-      <label className="flex items-center gap-2 text-sm text-[#1E293B]">
-        <input
-          type="checkbox"
-          checked={showAllCategories}
-          onChange={(event) => setShowAllCategories(event.target.checked)}
-        />
-        Show vehicles of all categories (not just {trip.vehicleCategory})
-      </label>
 
       <div className="max-h-96 space-y-2 overflow-y-auto">
         {evaluated.length === 0 && (
