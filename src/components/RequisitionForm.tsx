@@ -10,7 +10,12 @@ import Step4Details, { type DetailsDraft } from "./application/Step4Details";
 import useAuth from "../hooks/useAuth";
 import useNotifications from "../hooks/useNotifications";
 import useRequisitions from "../hooks/useRequisitions";
+import useUsers from "../hooks/useUsers";
 import { requiresRecommendation } from "../utils/authUtils";
+import {
+  buildRequisitionNotifications,
+  findDepartmentHeadsForRequisition,
+} from "../utils/notificationUtils";
 
 import type { Requisition, Trip } from "../types";
 
@@ -39,6 +44,7 @@ export default function RequisitionForm({
   const { currentUser } = useAuth();
   const { addRequisition } = useRequisitions();
   const { addNotification } = useNotifications();
+  const { users } = useUsers();
 
   const [sameAsRequester, setSameAsRequester] = useState(true);
   const [transportUser, setTransportUser] = useState<TransportUserDraft>({
@@ -119,7 +125,7 @@ export default function RequisitionForm({
       date: journey.date,
       startTime: journey.startTime,
       endTime: journey.endTime,
-      vehicleCategory: "Bus",
+      vehicleCategory: "Minibus",
       route: `Campus to ${journey.destination.trim()} and Return to Campus`,
       stoppageSequence: ["Campus", journey.destination.trim(), "Campus"],
       passengerGroups: [],
@@ -177,19 +183,21 @@ export default function RequisitionForm({
       addRequisition(requisition);
       onSubmit(requisition);
 
-      // When the recommender workflow applies, notify the matching
-      // DepartmentHead. The Admin notification is dispatched in
-      // ApplyRequisitionPage after the requisition is added.
+      // When the recommender workflow applies, notify every DepartmentHead
+      // whose head-of-department / head-of-office matches this
+      // requisition's department. The Admin notification is dispatched in
+      // ApplyRequisitionPage after the requisition is added; here we only
+      // handle the recommender audience, and each is stamped with that
+      // user's id so useNotifications can filter per-recipient.
       if (requiresRecommender) {
-        addNotification({
-          id: crypto.randomUUID(),
+        const heads = findDepartmentHeadsForRequisition(requisition, users);
+        for (const notification of buildRequisitionNotifications(heads, {
+          requisition,
           type: "New Requisition",
-          message: `${requisition.requesterName} submitted an official requisition awaiting your recommendation.`,
-          timestamp: new Date().toISOString(),
-          linkType: "requisition",
-          linkId: requisition.id,
-          isRead: false,
-        });
+          message: `${requisition.requesterName} submitted an official requisition (${requisition.requisitionType.toLowerCase()}) awaiting your recommendation.`,
+        })) {
+          addNotification(notification);
+        }
       }
     } finally {
       setIsSubmitting(false);

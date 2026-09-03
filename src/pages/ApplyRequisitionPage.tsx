@@ -2,6 +2,10 @@ import { useState } from "react";
 
 import useRequisitions from "../hooks/useRequisitions";
 import useNotifications from "../hooks/useNotifications";
+import useUsers from "../hooks/useUsers";
+import {
+  buildRequisitionNotifications,
+} from "../utils/notificationUtils";
 
 import RequisitionForm from "../components/RequisitionForm";
 
@@ -18,21 +22,26 @@ import type { Requisition } from "../types";
 export default function ApplyRequisitionPage() {
   const { addRequisition } = useRequisitions();
   const { addNotification } = useNotifications();
+  const { users } = useUsers();
 
   const [submitted, setSubmitted] = useState<Requisition | null>(null);
 
   function handleSubmit(requisition: Requisition) {
     addRequisition(requisition);
 
-    addNotification({
-      id: crypto.randomUUID(),
+    // Phase 5 — fan the "new requisition" ping out to every verified
+    // Admin so each admin's bell filters it in correctly. No-op when
+    // there are no admins (e.g. fresh seed before the user logs in).
+    const admins = users.filter(
+      (user) => user.role === "Admin" && user.isVerified,
+    );
+    for (const notification of buildRequisitionNotifications(admins, {
+      requisition,
       type: "New Requisition",
       message: `${requisition.requesterName} submitted a ${requisition.requisitionType.toLowerCase()} requisition (${requisition.trips.length} trip${requisition.trips.length === 1 ? "" : "s"})`,
-      timestamp: new Date().toISOString(),
-      linkType: "requisition",
-      linkId: requisition.id,
-      isRead: false,
-    });
+    })) {
+      addNotification(notification);
+    }
 
     setSubmitted(requisition);
   }

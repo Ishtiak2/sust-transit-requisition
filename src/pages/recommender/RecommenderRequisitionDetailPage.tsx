@@ -14,7 +14,10 @@ import {
 
 import type { RejectionReason, UserAccount } from "../../types";
 
-function scopesMatch(requesterDept, recommender: UserAccount): boolean {
+function scopesMatch(
+  requesterDept: string | undefined,
+  recommender: UserAccount,
+): boolean {
   const department = requesterDept?.trim().toLowerCase();
   const headDept = recommender.headOfDepartment?.trim().toLowerCase();
   const headOffice = recommender.headOfOffice?.trim().toLowerCase();
