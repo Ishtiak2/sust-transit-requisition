@@ -40,6 +40,12 @@ interface RequisitionDetailProps {
   onResetTrip: (requisitionId: string, tripId: string) => void;
   onGenerateConfirmationSlip: () => void;
   onGenerateDutySlip: (driverId: string) => void;
+  /**
+   * Phase 6 — Admin's final sign-off (spec §5 Stage C). Only relevant
+   * once the requisition's own status is "Approved"; omit or leave
+   * undefined to hide the action entirely (e.g. read-only contexts).
+   */
+  onFinalApprove?: () => void;
 }
 
 function statusBadgeClass(status: Trip["status"]) {
@@ -65,6 +71,7 @@ export default function RequisitionDetail({
   onResetTrip,
   onGenerateConfirmationSlip,
   onGenerateDutySlip,
+  onFinalApprove,
 }: RequisitionDetailProps) {
   const [rejectingTripId, setRejectingTripId] = useState<string | null>(null);
   const [reason, setReason] = useState<RejectionReason>(REJECTION_REASONS[0]);
@@ -335,6 +342,31 @@ export default function RequisitionDetail({
           ))}
         </div>
       </div>
+
+      {/* Final sign-off (spec §5 Stage C) */}
+      {requisition.status === "Approved" && onFinalApprove && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-[#BBF7D0] bg-[#F0FDF4] p-4">
+          <p className="text-sm text-[#15803D]">
+            All trips are approved and allocated. Final approval marks this
+            requisition complete and unlocks the confirmation slip download
+            for the applicant.
+          </p>
+          <button
+            type="button"
+            onClick={onFinalApprove}
+            className="h-9 shrink-0 rounded-md bg-[#15803D] px-4 text-sm font-medium text-white hover:opacity-90"
+          >
+            Final Approve
+          </button>
+        </div>
+      )}
+
+      {requisition.status === "Final Approved" && (
+        <div className="rounded-md border border-[#BBF7D0] bg-[#F0FDF4] p-4 text-sm text-[#15803D]">
+          Final Approved — the applicant can now download their confirmation
+          slip.
+        </div>
+      )}
 
       {/* Documents */}
       <div className="border-t border-[#E2E8F0] pt-4">

@@ -21,6 +21,7 @@ export type ApplicationStatus =
   | "Pending Approval"
   | "Partially Approved"
   | "Approved"
+  | "Final Approved"
   | "Ready for Accounts"
   | "Rejected";
 

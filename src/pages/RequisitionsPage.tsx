@@ -29,6 +29,7 @@ import type { ApplicationStatus } from "../types";
 type Tab = "queue" | "approved" | "rejected" | "all";
 
 function statusBadgeClass(status: ApplicationStatus) {
+  if (status === "Final Approved") return "bg-[#BBF7D0] text-[#15803D]";
   if (status === "Approved") return "bg-[#DCFCE7] text-[#15803D]";
   if (status === "Ready for Accounts") return "bg-[#E2E8F0] text-[#334E68]";
   if (status === "Rejected") return "bg-[#FEE2E2] text-[#B91C1C]";
@@ -38,8 +39,14 @@ function statusBadgeClass(status: ApplicationStatus) {
 }
 
 export default function RequisitionsPage() {
-  const { requisitions, approveTrip, rejectTrip, resetTripDecision, markReadyForAccounts } =
-    useRequisitions();
+  const {
+    requisitions,
+    approveTrip,
+    rejectTrip,
+    resetTripDecision,
+    markReadyForAccounts,
+    finalApprove,
+  } = useRequisitions();
   const { allocations, addAllocation, updateAllocation, removeAllocation } =
     useAllocations();
   const { vehicles } = useVehicles();
@@ -49,9 +56,9 @@ export default function RequisitionsPage() {
 
   const [tab, setTab] = useState<Tab>("queue");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [mileageTarget, setMileageTarget] = useState<MileageTripContext | null>(
-    null,
-  );
+  const [mileageTarget, setMileageTarget] = useState<
+    MileageTripContext[] | null
+  >(null);
 
   const sorted = [...requisitions].sort((a, b) =>
     a.createdAt.localeCompare(b.createdAt),
@@ -62,6 +69,7 @@ export default function RequisitionsPage() {
     if (tab === "approved")
       return (
         requisition.status === "Approved" ||
+        requisition.status === "Final Approved" ||
         requisition.status === "Ready for Accounts"
       );
     if (tab === "rejected") return requisition.status === "Rejected";
@@ -132,6 +140,11 @@ export default function RequisitionsPage() {
     }
   }
 
+  function handleFinalApprove() {
+    if (!selected) return;
+    finalApprove(selected.id);
+  }
+
   function handleGenerateConfirmationSlip() {
     if (!selected) return;
     generateConfirmationSlip(selected, allocations, vehicles, driver);
@@ -161,20 +174,32 @@ export default function RequisitionsPage() {
     });
   }
 
-  function handleRecordMileage(distanceKm: number) {
-    if (!mileageTarget) {
+  function handleRecordMileage(tripId: string, distanceKm: number) {
+    if (!mileageTarget || mileageTarget.length === 0) {
+      return;
+    }
+
+    const context = mileageTarget.find((item) => item.trip.id === tripId);
+    if (!context) {
       return;
     }
 
     addMileageEntry({
       id: crypto.randomUUID(),
-      requisitionId: mileageTarget.requisition.id,
-      tripId: mileageTarget.trip.id,
+      requisitionId: context.requisition.id,
+      tripId,
       distanceKm,
       recordedAt: new Date().toISOString(),
     });
 
-    markReadyForAccounts(mileageTarget.requisition.id);
+    // Only the last outstanding trip on this requisition promotes it to
+    // "Ready for Accounts" — a multi-trip requisition may still have
+    // other approved trips waiting on their own distance.
+    const remaining = mileageTarget.filter((item) => item.trip.id !== tripId);
+    if (remaining.length === 0) {
+      markReadyForAccounts(context.requisition.id);
+    }
+
     setMileageTarget(null);
   }
 
@@ -301,7 +326,7 @@ export default function RequisitionsPage() {
                           <button
                             type="button"
                             onClick={() =>
-                              setMileageTarget(mileageStatus.context)
+                              setMileageTarget(mileageStatus.trips)
                             }
                             className="text-sm font-medium text-[#334E68] hover:underline"
                           >
@@ -344,14 +369,15 @@ export default function RequisitionsPage() {
             onResetTrip={handleResetTrip}
             onGenerateConfirmationSlip={handleGenerateConfirmationSlip}
             onGenerateDutySlip={handleGenerateDutySlip}
+            onFinalApprove={handleFinalApprove}
           />
         </Modal>
       )}
 
-      {mileageTarget && (
+      {mileageTarget && mileageTarget.length > 0 && (
         <Modal title="Record Mileage" onClose={() => setMileageTarget(null)}>
           <MileageEntryForm
-            trip={mileageTarget.trip}
+            trips={mileageTarget.map((item) => item.trip)}
             onSubmit={handleRecordMileage}
             onCancel={() => setMileageTarget(null)}
           />

@@ -104,6 +104,26 @@ export default function useRequisitions() {
       }),
     );
   }
+  /**
+   * Phase 6 — Admin's final sign-off (spec §5 Stage C).
+   *
+   * Per spec, once Admin approves the requisition it becomes
+   * "Final Approved" and no separate Transport Administrator approval
+   * is required. This is the action that unlocks the applicant-facing
+   * confirmation slip download, so it's only allowed once every trip
+   * has actually been approved (and, in the common single-trip case,
+   * allocated a vehicle) — i.e. the requisition is already "Approved".
+   */
+  function finalApprove(requisitionId: string) {
+    setRequisitions((current) =>
+      current.map((requisition) =>
+        requisition.id === requisitionId && requisition.status === "Approved"
+          ? { ...requisition, status: "Final Approved" as const }
+          : requisition,
+      ),
+    );
+  }
+
   function markReadyForAccounts(requisitionId: string) {
     setRequisitions((current) =>
       current.map((requisition) =>
@@ -252,6 +272,7 @@ export default function useRequisitions() {
     deleteRequisition,
     approveTrip,
     rejectTrip,
+    finalApprove,
     markReadyForAccounts,
     resetTripDecision,
     recommendRequisition,

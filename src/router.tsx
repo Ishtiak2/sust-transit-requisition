@@ -13,6 +13,8 @@ import NotificationsPage from "./pages/NotificationsPage";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import RequisitionsPage from "./pages/RequisitionsPage";
 import ApplyRequisitionPage from "./pages/ApplyRequisitionPage";
+import MyRequisitionsPage from "./pages/MyRequisitionsPage";
+import MyMileagePage from "./pages/MyMileagePage";
 
 import RecommenderInboxPage from "./pages/recommender/RecommenderInboxPage";
 import RecommenderRequisitionDetailPage from "./pages/recommender/RecommenderRequisitionDetailPage";
@@ -52,6 +54,22 @@ const router = createBrowserRouter([
     element: (
       <RequireAuth>
         <ApplyRequisitionPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/my-requisitions",
+    element: (
+      <RequireAuth>
+        <MyRequisitionsPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/my-mileage",
+    element: (
+      <RequireAuth>
+        <MyMileagePage />
       </RequireAuth>
     ),
   },

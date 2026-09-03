@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import useRequisitions from "../hooks/useRequisitions";
 import useNotifications from "../hooks/useNotifications";
@@ -48,10 +49,13 @@ export default function ApplyRequisitionPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <header className="flex h-16 items-center bg-[#0F2747] px-6 text-white">
+      <header className="flex h-16 items-center justify-between bg-[#0F2747] px-6 text-white">
         <h1 className="text-lg font-semibold">
           SUST Transit — Request a Vehicle
         </h1>
+        <Link to="/my-requisitions" className="text-sm hover:underline">
+          My Requisitions
+        </Link>
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-10">
@@ -76,13 +80,22 @@ export default function ApplyRequisitionPage() {
               once a decision is made.
             </p>
 
-            <button
-              type="button"
-              onClick={() => setSubmitted(null)}
-              className="mt-6 h-10 rounded-md bg-[#0F2747] px-4 text-sm font-medium text-white hover:bg-[#334E68]"
-            >
-              Submit another requisition
-            </button>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSubmitted(null)}
+                className="h-10 rounded-md bg-[#0F2747] px-4 text-sm font-medium text-white hover:bg-[#334E68]"
+              >
+                Submit another requisition
+              </button>
+
+              <Link
+                to="/my-requisitions"
+                className="h-10 rounded-md border border-[#E2E8F0] px-4 text-sm font-medium leading-10 text-[#334E68] hover:bg-[#F8FAFC]"
+              >
+                View My Requisitions
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="rounded-lg border border-[#E2E8F0] bg-white p-6 sm:p-8">

@@ -59,10 +59,38 @@ export function getRecordedMileageTrips(
   );
 }
 
+export function getAwaitingMileageTripsForRequisition(
+  requisition: Requisition,
+  allocations: Allocation[],
+  mileageEntries: MileageEntry[],
+): MileageTripContext[] {
+  const recordedTripIds = new Set(
+    mileageEntries
+      .filter((entry) => entry.requisitionId === requisition.id)
+      .map((entry) => entry.tripId),
+  );
+
+  const result: MileageTripContext[] = [];
+
+  requisition.trips.forEach((trip) => {
+    if (trip.status !== "Approved" || recordedTripIds.has(trip.id)) {
+      return;
+    }
+
+    const allocation = allocations.find((item) => item.tripId === trip.id);
+
+    if (allocation) {
+      result.push({ requisition, trip, allocation });
+    }
+  });
+
+  return result;
+}
+
 export type MileageColumnStatus =
   | { kind: "not-applicable" }
   | { kind: "not-ready" }
-  | { kind: "awaiting"; context: MileageTripContext }
+  | { kind: "awaiting"; trips: MileageTripContext[] }
   | { kind: "recorded"; distanceKm: number };
 
 export function getMileageColumnStatus(
@@ -74,32 +102,45 @@ export function getMileageColumnStatus(
     return { kind: "not-applicable" };
   }
 
-  const recordedEntry = mileageEntries.find(
-    (entry) => entry.requisitionId === requisition.id,
-  );
-
-  if (recordedEntry) {
-    return { kind: "recorded", distanceKm: recordedEntry.distanceKm };
-  }
-
-  const approvedTrip = requisition.trips.find(
+  const approvedTrips = requisition.trips.filter(
     (trip) => trip.status === "Approved",
   );
 
-  if (!approvedTrip) {
+  if (approvedTrips.length === 0) {
     return { kind: "not-ready" };
   }
 
-  const allocation = allocations.find(
-    (item) => item.tripId === approvedTrip.id,
+  const requisitionEntries = mileageEntries.filter(
+    (entry) => entry.requisitionId === requisition.id,
+  );
+  const recordedTripIds = new Set(
+    requisitionEntries.map((entry) => entry.tripId),
   );
 
-  if (!allocation) {
+  // Every approved trip on this requisition has a recorded distance —
+  // Phase 7: applicant can now see the total across all of them.
+  const allApprovedTripsRecorded = approvedTrips.every((trip) =>
+    recordedTripIds.has(trip.id),
+  );
+
+  if (allApprovedTripsRecorded) {
+    const totalKm = requisitionEntries.reduce(
+      (sum, entry) => sum + entry.distanceKm,
+      0,
+    );
+    return { kind: "recorded", distanceKm: totalKm };
+  }
+
+  const awaiting = getAwaitingMileageTripsForRequisition(
+    requisition,
+    allocations,
+    mileageEntries,
+  );
+
+  if (awaiting.length === 0) {
+    // Approved trip(s) exist but none has a vehicle allocated yet.
     return { kind: "not-ready" };
   }
 
-  return {
-    kind: "awaiting",
-    context: { requisition, trip: approvedTrip, allocation },
-  };
+  return { kind: "awaiting", trips: awaiting };
 }
