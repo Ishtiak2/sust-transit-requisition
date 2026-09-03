@@ -35,6 +35,16 @@ export type {
 
 export type { Trip } from "./trip";
 
+export {
+  APPLICANT_PROFILES,
+  LOCKED_PROFILE_FIELDS_BY_ROLE,
+} from "./user";
+
+export type { ApplicantProfile as UserProfile, UserRole, UserAccount } from "./user";
+
+export { OTP_LENGTH, OTP_EXPIRY_MS, OTP_MAX_ATTEMPTS } from "./otp";
+export type { OtpChallenge } from "./otp";
+
 export const DRIVER_DESIGNATIONS = [
   "Supervisor Driver",
   "Senior Driver",

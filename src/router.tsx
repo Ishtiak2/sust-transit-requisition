@@ -1,6 +1,7 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import AdminLayout from "./layout/AdminLayout";
+import RequireAuth from "./components/RequireAuth";
 
 import DashboardPage from "./pages/DashboardPage";
 import VehiclePage from "./pages/VehiclePage";
@@ -13,14 +14,54 @@ import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import RequisitionsPage from "./pages/RequisitionsPage";
 import ApplyRequisitionPage from "./pages/ApplyRequisitionPage";
 
+import RecommenderInboxPage from "./pages/recommender/RecommenderInboxPage";
+import RecommenderRequisitionDetailPage from "./pages/recommender/RecommenderRequisitionDetailPage";
+
+import RegisterPage from "./pages/auth/RegisterPage";
+import OtpPage from "./pages/auth/OtpPage";
+import ProfileSetupPage from "./pages/auth/ProfileSetupPage";
+import LoginPage from "./pages/auth/LoginPage";
+
 const router = createBrowserRouter([
   {
+    path: "/",
+    element: <Navigate to="/login" replace />,
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "/register",
+    element: <RegisterPage />,
+  },
+  {
+    path: "/otp",
+    element: <OtpPage />,
+  },
+  {
+    path: "/profile-setup",
+    element: (
+      <RequireAuth>
+        <ProfileSetupPage />
+      </RequireAuth>
+    ),
+  },
+  {
     path: "/apply",
-    element: <ApplyRequisitionPage />,
+    element: (
+      <RequireAuth>
+        <ApplyRequisitionPage />
+      </RequireAuth>
+    ),
   },
   {
     path: "/admin",
-    element: <AdminLayout />,
+    element: (
+      <RequireAuth roles={["Admin", "DepartmentHead"]}>
+        <AdminLayout />
+      </RequireAuth>
+    ),
     children: [
       {
         index: true,
@@ -58,12 +99,24 @@ const router = createBrowserRouter([
         path: "vehicle/:vehicleId",
         element: <VehicleDetailsPage />,
       },
+      {
+        path: "recommender",
+        element: (
+          <RequireAuth roles={["DepartmentHead"]}>
+            <RecommenderInboxPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: "recommender/:requisitionId",
+        element: (
+          <RequireAuth roles={["DepartmentHead"]}>
+            <RecommenderRequisitionDetailPage />
+          </RequireAuth>
+        ),
+      },
     ],
   },
 ]);
 
 export default router;
-
-// When URL is this
-//        ↓
-// render this component

@@ -14,6 +14,7 @@ export type ApplicantType = "Individual" | "Organization";
 export const APPLICANT_TYPES: ApplicantType[] = ["Individual", "Organization"];
 
 export type ApplicationStatus =
+  | "Draft"
   | "Pending Recommendation"
   | "Information Requested"
   | "Recommended"
