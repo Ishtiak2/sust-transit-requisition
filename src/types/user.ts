@@ -16,6 +16,10 @@ export interface UserAccount {
   applicantProfile?: ApplicantProfile;
   fullName?: string;
   mobile?: string;
+  /** Hash of the account password (see utils/passwordUtils.ts). Set once
+   *  the applicant finishes profile setup; used by /login alongside
+   *  email. Optional because unverified accounts don't have one yet. */
+  passwordHash?: string;
   signatureDataUrl?: string;
   studentRegNumber?: string;
   department?: string;

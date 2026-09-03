@@ -71,16 +71,10 @@ export default function Step4Details({
   }
 
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-[#1E293B]">
-          Step 4 — Details
-        </h2>
-        <p className="mt-1 text-sm text-[#64748B]">
-          Add a short justification and any supporting documents (PDF, PNG,
-          or JPG up to 2 MB).
-        </p>
-      </div>
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-[#64748B]">
+        Requisition details
+      </h2>
 
       <div>
         <label className="mb-1.5 block text-sm font-medium text-[#1E293B]">

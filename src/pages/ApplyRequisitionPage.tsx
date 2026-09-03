@@ -76,12 +76,16 @@ export default function ApplyRequisitionPage() {
             </button>
           </div>
         ) : (
-          <div className="rounded-lg border border-[#E2E8F0] bg-white p-6">
-            <p className="mb-6 text-sm text-[#64748B]">
-              Fill in the form below to request a vehicle. Personal and
-              departmental requests use a simple single-trip form; club and
-              official requests can include multiple trips.
-            </p>
+          <div className="rounded-lg border border-[#E2E8F0] bg-white p-6 sm:p-8">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-[#1E293B]">
+                Vehicle Requisition Form
+              </h2>
+              <p className="mt-1 text-sm text-[#64748B]">
+                Complete every section below, then submit or save as a
+                draft to finish later.
+              </p>
+            </div>
 
             <RequisitionForm
               onSubmit={handleSubmit}

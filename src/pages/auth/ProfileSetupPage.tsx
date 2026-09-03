@@ -14,6 +14,7 @@ import type {
   UserAccount,
 } from "../../types";
 import { requiresProfileFields } from "../../utils/authUtils";
+import { MIN_PASSWORD_LENGTH } from "../../utils/passwordUtils";
 
 interface ProfileFormErrors {
   fullName?: string;
@@ -25,12 +26,14 @@ interface ProfileFormErrors {
   signature?: string;
   applicantType?: string;
   applicantProfile?: string;
+  password?: string;
+  confirmPassword?: string;
 }
 
 export default function ProfileSetupPage() {
   const navigate = useNavigate();
   const { currentUser, isAuthenticated } = useAuth();
-  const { update } = useUsers();
+  const { update, setPassword: savePassword } = useUsers();
 
   const [fullName, setFullName] = useState(currentUser?.fullName ?? "");
   const [mobile, setMobile] = useState(currentUser?.mobile ?? "");
@@ -49,6 +52,9 @@ export default function ProfileSetupPage() {
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | undefined>(
     currentUser?.signatureDataUrl,
   );
+  const hasExistingPassword = Boolean(currentUser?.passwordHash);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<ProfileFormErrors>({});
 
   useEffect(() => {
@@ -92,6 +98,23 @@ export default function ProfileSetupPage() {
       if (!designation.trim()) next.designation = "Designation is required.";
     }
 
+    // Password is required the first time a user completes their profile
+    // (this is what unlocks email + password login). Once a password
+    // exists, the fields are optional — only validated if the user is
+    // actively changing it.
+    if (!hasExistingPassword || password || confirmPassword) {
+      if (!password) {
+        next.password = "Password is required.";
+      } else if (password.length < MIN_PASSWORD_LENGTH) {
+        next.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+      }
+      if (!confirmPassword) {
+        next.confirmPassword = "Please confirm your password.";
+      } else if (password !== confirmPassword) {
+        next.confirmPassword = "Passwords do not match.";
+      }
+    }
+
     return next;
   }
 
@@ -116,6 +139,9 @@ export default function ProfileSetupPage() {
     };
 
     update(updated);
+    if (password) {
+      savePassword(currentUser.id, password);
+    }
     navigate("/apply");
   }
 
@@ -299,6 +325,41 @@ export default function ProfileSetupPage() {
                 </ProfileField>
               </div>
             ) : null}
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <ProfileField
+                label={hasExistingPassword ? "New password" : "Password"}
+                required={!hasExistingPassword}
+                error={errors.password}
+                helperText={
+                  hasExistingPassword
+                    ? "Leave blank to keep your current password."
+                    : `At least ${MIN_PASSWORD_LENGTH} characters. You'll use this with your email to log in.`
+                }
+              >
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  className={inputClass(!!errors.password)}
+                />
+              </ProfileField>
+
+              <ProfileField
+                label="Confirm password"
+                required={!hasExistingPassword}
+                error={errors.confirmPassword}
+              >
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  className={inputClass(!!errors.confirmPassword)}
+                />
+              </ProfileField>
+            </div>
 
             <ProfileField
               label="Signature"

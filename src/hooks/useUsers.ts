@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { STORAGE_KEYS } from "../data/storageKeys";
+import { hashPassword } from "../utils/passwordUtils";
 import type { UserAccount } from "../types";
 
 const STORAGE_KEY = STORAGE_KEYS.users;
 
 const SEED_ADMIN_ID = "USR-SEED-ADMIN";
 const SEED_ADMIN_EMAIL = "admin@sust.edu";
+/** Dev-only default password for the seeded admin account. Anyone testing
+ *  the admin flows locally can log in with admin@sust.edu / this password. */
+const SEED_ADMIN_PASSWORD = "Admin@123";
 
 function readUsers(): UserAccount[] {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -38,6 +42,7 @@ function ensureSeedAdmin(users: UserAccount[]): UserAccount[] {
     email: SEED_ADMIN_EMAIL,
     role: "Admin",
     fullName: "System Administrator",
+    passwordHash: hashPassword(SEED_ADMIN_PASSWORD),
     isVerified: true,
     createdAt: new Date().toISOString(),
   };
@@ -91,6 +96,14 @@ export default function useUsers() {
     );
   }, []);
 
+  const setPassword = useCallback((id: string, password: string) => {
+    const passwordHash = hashPassword(password);
+    setUsers((current) =>
+      current.map((user) => (user.id === id ? { ...user, passwordHash } : user)),
+    );
+    return passwordHash;
+  }, []);
+
   return {
     users,
     setUsers,
@@ -100,5 +113,6 @@ export default function useUsers() {
     findByEmail,
     findById,
     markVerified,
+    setPassword,
   };
 }

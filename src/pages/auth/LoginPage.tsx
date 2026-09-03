@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import useUsers from "../../hooks/useUsers";
 import useAuth from "../../hooks/useAuth";
+import { verifyPassword } from "../../utils/passwordUtils";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ export default function LoginPage() {
   const { login } = useAuth();
 
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,13 +26,39 @@ export default function LoginPage() {
       return;
     }
 
-    setSubmitting(true);
-    login(user.id);
-
+    // Unverified accounts haven't reached profile setup yet, so they
+    // don't have a password to check — resume them at the OTP step
+    // instead of blocking them here.
     if (!user.isVerified) {
+      setSubmitting(true);
+      login(user.id);
       navigate("/otp", { state: { email: trimmed } });
       return;
     }
+
+    // Verified accounts created before password login existed won't have
+    // a passwordHash yet — send them to finish that one-time setup step.
+    if (!user.passwordHash) {
+      setSubmitting(true);
+      login(user.id);
+      navigate("/profile-setup", {
+        state: { message: "Please set a password to continue logging in." },
+      });
+      return;
+    }
+
+    if (!password) {
+      setError("Please enter your password.");
+      return;
+    }
+
+    if (!verifyPassword(password, user.passwordHash)) {
+      setError("Incorrect password. Please try again.");
+      return;
+    }
+
+    setSubmitting(true);
+    login(user.id);
 
     if (user.role === "Admin" || user.role === "DepartmentHead") {
       navigate("/admin");
@@ -66,6 +94,20 @@ export default function LoginPage() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="you@sust.edu"
+                className="h-10 rounded-md border border-[#E2E8F0] bg-white px-3 text-sm text-[#1E293B] outline-none focus:border-[#0F2747] focus:ring-2 focus:ring-[#0F2747]"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1">
+              <span className="text-sm font-medium text-[#1E293B]">
+                Password <span className="text-[#B91C1C]">*</span>
+              </span>
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="••••••••"
                 className="h-10 rounded-md border border-[#E2E8F0] bg-white px-3 text-sm text-[#1E293B] outline-none focus:border-[#0F2747] focus:ring-2 focus:ring-[#0F2747]"
               />
             </label>

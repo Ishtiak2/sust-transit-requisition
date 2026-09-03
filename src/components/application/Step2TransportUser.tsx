@@ -60,16 +60,10 @@ export default function Step2TransportUser({
   }
 
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-[#1E293B]">
-          Step 2 — Transport user
-        </h2>
-        <p className="mt-1 text-sm text-[#64748B]">
-          If someone other than the requester will use the vehicle, enter
-          their details here.
-        </p>
-      </div>
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-[#64748B]">
+        Transport user
+      </h2>
 
       <label className="flex items-center gap-2 text-sm text-[#1E293B]">
         <input

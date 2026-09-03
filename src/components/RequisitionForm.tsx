@@ -1,13 +1,11 @@
 import { useMemo, useState } from "react";
 
-import StepIndicator from "./application/StepIndicator";
 import Step1Requester from "./application/Step1Requester";
 import Step2TransportUser, {
   type TransportUserDraft,
 } from "./application/Step2TransportUser";
 import Step3Journey, { type JourneyDraft } from "./application/Step3Journey";
 import Step4Details, { type DetailsDraft } from "./application/Step4Details";
-import Step5Recommendation from "./application/Step5Recommendation";
 
 import useAuth from "../hooks/useAuth";
 import useNotifications from "../hooks/useNotifications";
@@ -22,19 +20,13 @@ interface RequisitionFormProps {
 }
 
 /**
- * Phase 3 — 5-step applicant requisition form.
+ * Single-page applicant requisition form.
  *
- * Step 1 reads the verified profile (no input).
- * Step 2 collects who physically uses the transport.
- * Step 3 collects the journey (date, time, destination, purpose, type).
- * Step 4 collects the reason and an optional supporting document.
- * Step 5 is the review & submit screen.
- *
- * The Submit handler routes to "Pending Recommendation" when the
- * recommender workflow applies (Officer/Teacher/Student + Official) or
- * straight to "Pending Approval" otherwise. Save-as-Draft persists the
- * requisition with status "Draft" and an empty trips array — the trip
- * becomes valid once the user fills the Journey step and re-submits.
+ * All sections (requester, transport user, journey, details) are shown
+ * together on one page — like the paper form it replaces — rather than
+ * gated behind a multi-step wizard. Validation runs across every section
+ * at once when the applicant submits or saves a draft, and any errors are
+ * shown inline next to the relevant field plus summarised at the top.
  *
  * The legacy "paper form vs flexible multi-trip" branching from the
  * previous implementation is intentionally removed; that path was the
@@ -47,8 +39,6 @@ export default function RequisitionForm({
   const { currentUser } = useAuth();
   const { addRequisition } = useRequisitions();
   const { addNotification } = useNotifications();
-
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   const [sameAsRequester, setSameAsRequester] = useState(true);
   const [transportUser, setTransportUser] = useState<TransportUserDraft>({
@@ -91,25 +81,18 @@ export default function RequisitionForm({
     );
   }
 
-  function clearErrors() {
-    setErrors({});
-  }
-
-  function validateStep2(): boolean {
+  function validateAll(): Record<string, string> {
     const next: Record<string, string> = {};
-    if (sameAsRequester) return true;
-    if (!transportUser.fullName.trim()) {
-      next.fullName = "Transport user name is required.";
-    }
-    if (!transportUser.mobile.trim()) {
-      next.mobile = "Transport user mobile is required.";
-    }
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  }
 
-  function validateStep3(): boolean {
-    const next: Record<string, string> = {};
+    if (!sameAsRequester) {
+      if (!transportUser.fullName.trim()) {
+        next.fullName = "Transport user name is required.";
+      }
+      if (!transportUser.mobile.trim()) {
+        next.mobile = "Transport user mobile is required.";
+      }
+    }
+
     if (!journey.date) {
       next.date = "Date is required.";
     }
@@ -122,35 +105,12 @@ export default function RequisitionForm({
     if (!journey.purpose.trim()) {
       next.purpose = "Purpose is required.";
     }
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  }
 
-  function validateStep4(): boolean {
-    const next: Record<string, string> = {};
     if (!details.reason.trim()) {
       next.reason = "Reason for requisition is required.";
     }
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  }
 
-  function goNext() {
-    clearErrors();
-    if (step === 2 && !validateStep2()) return;
-    if (step === 3 && !validateStep3()) return;
-    if (step === 4 && !validateStep4()) return;
-    setStep((current) => (current < 5 ? ((current + 1) as 1 | 2 | 3 | 4 | 5) : current));
-  }
-
-  function goBack() {
-    clearErrors();
-    setStep((current) => (current > 1 ? ((current - 1) as 1 | 2 | 3 | 4 | 5) : current));
-  }
-
-  function jumpTo(target: 1 | 2 | 3 | 4 | 5) {
-    clearErrors();
-    setStep(target);
+    return next;
   }
 
   function buildTripFromJourney(): Trip {
@@ -169,14 +129,14 @@ export default function RequisitionForm({
 
   function buildRequisition(status: Requisition["status"]): Requisition {
     const trips = status === "Draft" ? [] : [buildTripFromJourney()];
-    const departmentOrOffice = requester.department ?? requester.office ?? "";
-    const contactNumber = requester.mobile ?? transportUser.mobile;
+    const departmentOrOffice = requester!.department ?? requester!.office ?? "";
+    const contactNumber = requester!.mobile ?? transportUser.mobile;
 
     return {
       id: crypto.randomUUID(),
-      requesterId: requester.id,
+      requesterId: requester!.id,
       requesterName:
-        requester.fullName?.trim() || transportUser.fullName.trim() || requester.email,
+        requester!.fullName?.trim() || transportUser.fullName.trim() || requester!.email,
       applicantType: "Individual",
       department: departmentOrOffice.trim() || undefined,
       contactNumber: contactNumber?.trim() || undefined,
@@ -203,20 +163,9 @@ export default function RequisitionForm({
   }
 
   function handleSubmit() {
-    // Re-validate every step before we commit — the user might have
-    // skipped back-and-forth without re-checking later steps.
-    if (!validateStep2()) {
-      setStep(2);
-      return;
-    }
-    if (!validateStep3()) {
-      setStep(3);
-      return;
-    }
-    if (!validateStep4()) {
-      setStep(4);
-      return;
-    }
+    const next = validateAll();
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
 
     setIsSubmitting(true);
     try {
@@ -247,102 +196,114 @@ export default function RequisitionForm({
     }
   }
 
+  const errorCount = Object.keys(errors).length;
+  const submitLabel = requiresRecommender
+    ? "Proceed to Recommendation"
+    : "Submit Application";
+
   return (
     <div className="space-y-6">
-      <div className="rounded-md border border-[#E2E8F0] bg-white p-4">
-        <StepIndicator current={step} />
-      </div>
+      {errorCount > 0 ? (
+        <div className="rounded-md border border-[#FEE2E2] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
+          Please fix {errorCount} field{errorCount === 1 ? "" : "s"} below
+          before submitting.
+        </div>
+      ) : null}
 
-      <div className="rounded-md border border-[#E2E8F0] bg-white p-5">
-        {step === 1 && <Step1Requester requester={requester} />}
+      <FormSection first>
+        <Step1Requester requester={requester} />
+      </FormSection>
 
-        {step === 2 && (
-          <Step2TransportUser
-            requester={requester}
-            value={transportUser}
-            sameAsRequester={sameAsRequester}
-            onSameAsRequesterChange={setSameAsRequester}
-            onChange={setTransportUser}
-            errors={{
-              fullName: errors.fullName,
-              mobile: errors.mobile,
-              designation: errors.designation,
-            }}
-          />
-        )}
+      <FormSection>
+        <Step2TransportUser
+          requester={requester}
+          value={transportUser}
+          sameAsRequester={sameAsRequester}
+          onSameAsRequesterChange={setSameAsRequester}
+          onChange={setTransportUser}
+          errors={{
+            fullName: errors.fullName,
+            mobile: errors.mobile,
+            designation: errors.designation,
+          }}
+        />
+      </FormSection>
 
-        {step === 3 && (
-          <Step3Journey
-            value={journey}
-            onChange={setJourney}
-            applicantProfile={requester.applicantProfile}
-            errors={{
-              date: errors.date,
-              destination: errors.destination,
-              purpose: errors.purpose,
-            }}
-          />
-        )}
+      <FormSection>
+        <Step3Journey
+          value={journey}
+          onChange={setJourney}
+          applicantProfile={requester.applicantProfile}
+          errors={{
+            date: errors.date,
+            destination: errors.destination,
+            purpose: errors.purpose,
+          }}
+        />
+        {errors.time ? (
+          <p className="-mt-2 text-xs text-[#B91C1C]">{errors.time}</p>
+        ) : null}
+      </FormSection>
 
-        {step === 4 && (
-          <Step4Details
-            value={details}
-            onChange={setDetails}
-            errors={{ reason: errors.reason }}
-          />
-        )}
+      <FormSection>
+        <Step4Details
+          value={details}
+          onChange={setDetails}
+          errors={{ reason: errors.reason }}
+        />
+      </FormSection>
 
-        {step === 5 && (
-          <Step5Recommendation
-            requesterName={requester.fullName ?? requester.email}
-            transportUser={transportUser}
-            journey={journey}
-            details={details}
-            applicantProfile={requester.applicantProfile}
-            requiresRecommendation={requiresRecommender}
-            onSubmit={handleSubmit}
-            onSaveDraft={handleSaveDraft}
-            isSubmitting={isSubmitting}
-          />
-        )}
-      </div>
+      {requiresRecommender ? (
+        <p className="rounded-md border border-[#FEF3C7] bg-[#FEF3C7] px-4 py-3 text-sm text-[#B45309]">
+          This requisition type requires your Department/Office Head to
+          recommend it before Admin can review it.
+        </p>
+      ) : null}
 
-      {step !== 5 && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E2E8F0] pt-5">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="h-10 rounded-md border border-[#E2E8F0] bg-white px-4 text-sm font-medium text-[#334E68] hover:bg-[#F8FAFC]"
+        >
+          Cancel
+        </button>
+
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={step === 1 ? onCancel : goBack}
-            className="h-10 rounded-md border border-[#E2E8F0] bg-white px-4 text-sm font-medium text-[#334E68] hover:bg-[#F8FAFC]"
+            onClick={handleSaveDraft}
+            disabled={isSubmitting}
+            className="h-10 rounded-md border border-[#E2E8F0] bg-white px-4 text-sm font-medium text-[#334E68] hover:bg-[#F8FAFC] disabled:cursor-not-allowed disabled:text-[#64748B]"
           >
-            {step === 1 ? "Cancel" : "Back"}
+            Save as Draft
           </button>
 
-          <div className="flex items-center gap-2">
-            {step > 1 ? (
-              <div className="hidden gap-1 sm:flex">
-                {([1, 2, 3, 4] as const).map((target) => (
-                  <button
-                    key={target}
-                    type="button"
-                    onClick={() => jumpTo(target)}
-                    className="h-8 rounded-md px-2 text-xs font-medium text-[#64748B] hover:bg-[#F8FAFC] hover:text-[#1E293B]"
-                  >
-                    Step {target}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={goNext}
-              className="h-10 rounded-md bg-[#0F2747] px-4 text-sm font-medium text-white hover:bg-[#334E68]"
-            >
-              Continue
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="h-10 rounded-md bg-[#0F2747] px-4 text-sm font-medium text-white hover:bg-[#334E68] disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {submitLabel}
+          </button>
         </div>
-      )}
+      </div>
+    </div>
+  );
+}
+
+/** Plain section divider — no boxes, no numbering, just one flowing sheet. */
+function FormSection({
+  first = false,
+  children,
+}: {
+  first?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={first ? "" : "border-t border-[#E2E8F0] pt-6"}>
+      {children}
     </div>
   );
 }

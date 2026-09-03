@@ -55,17 +55,10 @@ export default function Step3Journey({
   const durationOk = isWithinHoldWindow(value.startTime, value.endTime);
 
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold text-[#1E293B]">
-          Step 3 — Journey
-        </h2>
-        <p className="mt-1 text-sm text-[#64748B]">
-          Tell us when and where the vehicle is needed. Per the policy a
-          single requisition cannot keep a vehicle for more than 3 hours
-          without admin approval.
-        </p>
-      </div>
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-[#64748B]">
+        Journey
+      </h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>

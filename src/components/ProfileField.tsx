@@ -6,12 +6,13 @@ interface ProfileFieldProps {
   lockedReason?: string;
   required?: boolean;
   error?: string;
+  helperText?: string;
   children: ReactNode;
 }
 
 /**
  * Field wrapper that pairs an input/select with a label, an optional lock
- * icon + tooltip, and an inline error message.
+ * icon + tooltip, an optional helper caption, and an inline error message.
  */
 export default function ProfileField({
   label,
@@ -19,6 +20,7 @@ export default function ProfileField({
   lockedReason = "Changes require admin action",
   required = false,
   error,
+  helperText,
   children,
 }: ProfileFieldProps) {
   return (
@@ -38,6 +40,10 @@ export default function ProfileField({
       </span>
 
       {children}
+
+      {helperText && !error ? (
+        <span className="text-xs text-[#64748B]">{helperText}</span>
+      ) : null}
 
       {error ? (
         <span className="text-xs text-[#B91C1C]">{error}</span>
