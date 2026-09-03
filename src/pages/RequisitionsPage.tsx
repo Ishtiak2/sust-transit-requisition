@@ -271,8 +271,7 @@ export default function RequisitionsPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-[#64748B]">
-                        {requisition.trips.length} ({counts.approved}A /{" "}
-                        {counts.rejected}R / {counts.pending}P)
+                        {requisition.trips.length}
                       </td>
                       <td className="px-4 py-3">
                         <span
