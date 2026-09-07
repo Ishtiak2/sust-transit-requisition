@@ -2,7 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import AdminLayout from "./layout/AdminLayout";
 import RequireAuth from "./components/RequireAuth";
-import { ADMIN_LAYOUT_ROLES, ADMIN_ROLES } from "./utils/permissions";
+import { ADMIN_LAYOUT_ROLES } from "./utils/permissions";
 
 import DashboardPage from "./pages/DashboardPage";
 import VehiclePage from "./pages/VehiclePage";
@@ -13,6 +13,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import RequisitionsPage from "./pages/RequisitionsPage";
 import UsersPage from "./pages/UsersPage";
+import ProfilePage from "./pages/ProfilePage";
 import ApplyRequisitionPage from "./pages/ApplyRequisitionPage";
 import MyRequisitionsPage from "./pages/MyRequisitionsPage";
 import MyMileagePage from "./pages/MyMileagePage";
@@ -88,9 +89,13 @@ const router = createBrowserRouter([
         element: <DashboardPage />,
       },
       {
+        // Corrections Step 3 — TIC-only per the corrected requirements
+        // (Super Admin and Transport Administrator no longer manage
+        // vehicles/drivers/schedule at all, not just "don't see the nav
+        // link for it"). Narrowed from the shared ADMIN_ROLES guard.
         path: "vehicle",
         element: (
-          <RequireAuth roles={ADMIN_ROLES}>
+          <RequireAuth roles={["TransportInCharge"]}>
             <VehiclePage />
           </RequireAuth>
         ),
@@ -98,7 +103,7 @@ const router = createBrowserRouter([
       {
         path: "driver",
         element: (
-          <RequireAuth roles={ADMIN_ROLES}>
+          <RequireAuth roles={["TransportInCharge"]}>
             <DriverPage />
           </RequireAuth>
         ),
@@ -106,7 +111,7 @@ const router = createBrowserRouter([
       {
         path: "transport-schedule",
         element: (
-          <RequireAuth roles={ADMIN_ROLES}>
+          <RequireAuth roles={["TransportInCharge"]}>
             <TransportSchedulePage />
           </RequireAuth>
         ),
@@ -114,15 +119,18 @@ const router = createBrowserRouter([
       {
         path: "schedule",
         element: (
-          <RequireAuth roles={ADMIN_ROLES}>
+          <RequireAuth roles={["TransportInCharge"]}>
             <SchedulePage />
           </RequireAuth>
         ),
       },
       {
+        // Corrections Step 3 — Super Admin dropped; requisitions is now
+        // TIC + Transport Administrator only, matching "Super Admin's
+        // only surface is accounts."
         path: "requisitions",
         element: (
-          <RequireAuth roles={ADMIN_ROLES}>
+          <RequireAuth roles={["TransportInCharge", "TransportAdministrator"]}>
             <RequisitionsPage />
           </RequireAuth>
         ),
@@ -140,6 +148,13 @@ const router = createBrowserRouter([
         ),
       },
       {
+        // Corrections Step 2 — self-service profile edit, open to the
+        // whole /admin shell like notifications: every role that has a
+        // navbar dropdown to reach this from should be able to use it.
+        path: "profile",
+        element: <ProfilePage />,
+      },
+      {
         // Left open to the whole /admin shell (admin roles + DepartmentHead)
         // since recommenders get their own notifications too.
         path: "notifications",
@@ -148,7 +163,7 @@ const router = createBrowserRouter([
       {
         path: "vehicle/:vehicleId",
         element: (
-          <RequireAuth roles={ADMIN_ROLES}>
+          <RequireAuth roles={["TransportInCharge"]}>
             <VehicleDetailsPage />
           </RequireAuth>
         ),

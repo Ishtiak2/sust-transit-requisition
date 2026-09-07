@@ -188,7 +188,7 @@ export default function NotificationBell() {
               }}
               className="text-xs font-medium text-[#334E68] hover:underline"
             >
-              View all
+              See More
             </button>
           </div>
         </div>

@@ -12,11 +12,21 @@ export default function NotificationsPage() {
 
   function handleClick(notification: AppNotification) {
     markAsRead(notification.id);
-    navigate(
-      notification.linkType === "requisition"
-        ? "/admin/requisitions"
-        : "/admin/conflicts",
-    );
+
+    if (notification.linkType === "requisition") {
+      navigate("/admin/requisitions");
+      return;
+    }
+
+    // Phase 9 — account activation/deactivation/role-change pings.
+    // This page never got the fix NotificationBell.tsx got in Phase 9;
+    // backfilling it here so both surfaces route consistently.
+    if (notification.linkType === "user") {
+      navigate("/admin/users");
+      return;
+    }
+
+    navigate("/admin/conflicts");
   }
 
   return (
