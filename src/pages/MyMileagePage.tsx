@@ -6,6 +6,7 @@ import useRequisitions from "../hooks/useRequisitions";
 import useAllocations from "../hooks/useAllocations";
 import useVehicles from "../hooks/useVehicles";
 import useMileageEntries from "../hooks/useMileageEntries";
+import NotificationBell from "../components/NotificationBell";
 
 import {
   getRecordedMileageTrips,
@@ -67,6 +68,7 @@ export default function MyMileagePage() {
           <Link to="/apply" className="hover:underline">
             New Requisition
           </Link>
+          <NotificationBell />
           <button
             type="button"
             onClick={handleLogout}

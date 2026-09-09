@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 
 import useAuth from "../hooks/useAuth";
 import useRequisitions from "../hooks/useRequisitions";
@@ -9,6 +9,7 @@ import useDriver from "../hooks/useDriver";
 
 import Modal from "../components/Modal";
 import ApplicantRequisitionDetail from "../components/ApplicantRequisitionDetail";
+import NotificationBell from "../components/NotificationBell";
 
 import { formatDateRange } from "../utils/requisitionUtils";
 import { generateConfirmationSlip } from "../utils/pdf/confirmationSlip";
@@ -43,6 +44,7 @@ export default function MyRequisitionsPage() {
   const { vehicles } = useVehicles();
   const { driver } = useDriver();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -52,6 +54,20 @@ export default function MyRequisitionsPage() {
       .filter((requisition) => requisition.requesterId === currentUser.id)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }, [requisitions, currentUser]);
+
+  // Step 10 — a notification's "requisition" link deep-links here as
+  // /my-requisitions?open=<id> instead of an admin route. Once the list
+  // has loaded, open that requisition's detail modal automatically, then
+  // drop the query param so refreshing/closing doesn't reopen it.
+  useEffect(() => {
+    const openId = searchParams.get("open");
+    if (openId && myRequisitions.some((requisition) => requisition.id === openId)) {
+      setSelectedId(openId);
+      const next = new URLSearchParams(searchParams);
+      next.delete("open");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, myRequisitions, setSearchParams]);
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
@@ -82,6 +98,7 @@ export default function MyRequisitionsPage() {
           <Link to="/my-mileage" className="hover:underline">
             My Mileage
           </Link>
+          <NotificationBell />
           <button
             type="button"
             onClick={handleLogout}

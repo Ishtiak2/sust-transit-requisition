@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import type { UserAccount } from "../../types";
+import { ERROR_TEXT, FIELD_LABEL, FIELD_UNDERLINE } from "./formTheme";
 
 export interface TransportUserDraft {
   fullName: string;
@@ -60,66 +61,53 @@ export default function Step2TransportUser({
   }
 
   return (
-    <section className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-[#64748B]">
-        Transport user
-      </h2>
-
-      <label className="flex items-center gap-2 text-sm text-[#1E293B]">
+    <section className="space-y-4">
+      <label className="flex items-center gap-2 text-sm text-form-ink">
         <input
           type="checkbox"
           checked={sameAsRequester}
           onChange={(event) => handleSameAsRequester(event.target.checked)}
+          className="h-4 w-4 rounded-none border-form-rule text-primary focus:ring-primary"
         />
         Transport user is the same as the requester
       </label>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-[#1E293B]">
-            Full name
-          </label>
+          <label className={FIELD_LABEL}>Full name</label>
           <input
             value={value.fullName}
             onChange={(event) => handleField("fullName", event.target.value)}
             disabled={sameAsRequester}
-            className="h-10 w-full rounded-md border border-[#E2E8F0] bg-white px-3 text-sm text-[#1E293B] outline-none focus:border-[#334E68] focus:ring-1 focus:ring-[#334E68] disabled:bg-[#F8FAFC] disabled:text-[#64748B]"
+            className={`${FIELD_UNDERLINE} disabled:text-form-muted`}
           />
-          {errors.fullName ? (
-            <p className="mt-1 text-xs text-[#B91C1C]">{errors.fullName}</p>
-          ) : null}
+          {errors.fullName ? <p className={ERROR_TEXT}>{errors.fullName}</p> : null}
         </div>
 
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-[#1E293B]">
-            Mobile number
-          </label>
+          <label className={FIELD_LABEL}>Mobile number</label>
           <input
             type="tel"
             value={value.mobile}
             onChange={(event) => handleField("mobile", event.target.value)}
             disabled={sameAsRequester}
-            className="h-10 w-full rounded-md border border-[#E2E8F0] bg-white px-3 text-sm text-[#1E293B] outline-none focus:border-[#334E68] focus:ring-1 focus:ring-[#334E68] disabled:bg-[#F8FAFC] disabled:text-[#64748B]"
+            className={`${FIELD_UNDERLINE} disabled:text-form-muted`}
           />
-          {errors.mobile ? (
-            <p className="mt-1 text-xs text-[#B91C1C]">{errors.mobile}</p>
-          ) : null}
+          {errors.mobile ? <p className={ERROR_TEXT}>{errors.mobile}</p> : null}
         </div>
 
         <div className="sm:col-span-2">
-          <label className="mb-1.5 block text-sm font-medium text-[#1E293B]">
-            Designation (optional)
-          </label>
+          <label className={FIELD_LABEL}>Designation (optional)</label>
           <input
             value={value.designation}
             onChange={(event) =>
               handleField("designation", event.target.value)
             }
             disabled={sameAsRequester}
-            className="h-10 w-full rounded-md border border-[#E2E8F0] bg-white px-3 text-sm text-[#1E293B] outline-none focus:border-[#334E68] focus:ring-1 focus:ring-[#334E68] disabled:bg-[#F8FAFC] disabled:text-[#64748B]"
+            className={`${FIELD_UNDERLINE} disabled:text-form-muted sm:w-1/2`}
           />
           {errors.designation ? (
-            <p className="mt-1 text-xs text-[#B91C1C]">{errors.designation}</p>
+            <p className={ERROR_TEXT}>{errors.designation}</p>
           ) : null}
         </div>
       </div>

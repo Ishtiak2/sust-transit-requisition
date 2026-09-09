@@ -153,7 +153,7 @@ export default function RequisitionDetail({
         <div>
           <p className="text-xs font-medium text-[#64748B]">Requester</p>
           <p className="text-sm text-[#1E293B]">
-            {requisition.requesterName} ({requisition.applicantType})
+            {requisition.requesterName}
           </p>
         </div>
 
@@ -200,6 +200,23 @@ export default function RequisitionDetail({
           <p className="text-xs font-medium text-[#64748B]">Purpose</p>
           <p className="text-sm text-[#1E293B]">{requisition.purpose}</p>
         </div>
+
+        {requisition.supportingDocumentDataUrl && (
+          <div className="sm:col-span-2">
+            <p className="text-xs font-medium text-[#64748B]">
+              Supporting Document
+            </p>
+            <a
+              href={requisition.supportingDocumentDataUrl}
+              target="_blank"
+              rel="noreferrer"
+              download={requisition.supportingDocumentName || undefined}
+              className="text-sm font-medium text-[#0F2747] hover:underline"
+            >
+              {requisition.supportingDocumentName || "View document"}
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Phase 1 — Administrator's send-back reason, visible to Transport

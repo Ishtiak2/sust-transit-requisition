@@ -4,15 +4,9 @@ import useAuth from "../../hooks/useAuth";
 import useUsers from "../../hooks/useUsers";
 import ProfileField from "../../components/ProfileField";
 import SignatureUpload from "../../components/SignatureUpload";
-import {
-  APPLICANT_PROFILES,
-  APPLICANT_TYPES,
-} from "../../types";
-import type {
-  ApplicantProfile,
-  ApplicantType,
-  UserAccount,
-} from "../../types";
+import GovFormMasthead from "../../components/application/GovFormMasthead";
+import { APPLICANT_PROFILES } from "../../types";
+import type { ApplicantProfile, UserAccount } from "../../types";
 import { requiresProfileFields } from "../../utils/authUtils";
 import { MIN_PASSWORD_LENGTH } from "../../utils/passwordUtils";
 
@@ -24,7 +18,6 @@ interface ProfileFormErrors {
   designation?: string;
   studentRegNumber?: string;
   signature?: string;
-  applicantType?: string;
   applicantProfile?: string;
   password?: string;
   confirmPassword?: string;
@@ -37,9 +30,6 @@ export default function ProfileSetupPage() {
 
   const [fullName, setFullName] = useState(currentUser?.fullName ?? "");
   const [mobile, setMobile] = useState(currentUser?.mobile ?? "");
-  const [applicantType, setApplicantType] = useState<ApplicantType>(
-    currentUser && (currentUser.applicantProfile ? "Individual" : "Individual"),
-  );
   const [applicantProfile, setApplicantProfile] = useState<
     ApplicantProfile | ""
   >(currentUser?.applicantProfile ?? "");
@@ -74,7 +64,17 @@ export default function ProfileSetupPage() {
     [applicantProfile],
   );
 
+  // Locking is temporarily disabled: for now the applicant should be able
+  // to change department/designation/office/studentRegNumber at any time,
+  // including after verification. The lock infrastructure below
+  // (isLocked/requiredFields, and the `disabled={lockActive && ...}` wiring
+  // on each field) is left in place, just dormant, so it can be
+  // re-enabled later by restoring `Boolean(currentUser?.isVerified)` here
+  // without having to rebuild it.
+  const lockActive = false;
+
   function isLocked(field: keyof UserAccount): boolean {
+    if (!lockActive) return false;
     return requiredFields.includes(field);
   }
 
@@ -83,6 +83,7 @@ export default function ProfileSetupPage() {
 
     if (!fullName.trim()) next.fullName = "Full name is required.";
     if (!mobile.trim()) next.mobile = "Mobile number is required.";
+    if (!signatureDataUrl) next.signature = "Signature is required.";
 
     if (applicantProfile === "Student") {
       if (!department.trim()) next.department = "Department is required.";
@@ -142,53 +143,31 @@ export default function ProfileSetupPage() {
     if (password) {
       savePassword(currentUser.id, password);
     }
-    navigate("/apply");
+    // Step 9 — same landing decision as LoginPage.tsx: an applicant
+    // finishing profile setup for the first time should see the
+    // dashboard first, not drop straight onto the requisition form.
+    navigate("/dashboard");
   }
 
   if (!currentUser) return null;
 
   const inputClass = (hasError?: boolean) =>
-    `h-10 rounded-md border bg-white px-3 text-sm text-[#1E293B] outline-none focus:border-[#0F2747] focus:ring-2 focus:ring-[#0F2747] ${
-      hasError ? "border-[#B91C1C]" : "border-[#E2E8F0]"
+    `h-10 rounded-none border bg-white px-3 text-sm text-form-ink outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:bg-form-band/60 disabled:text-form-muted disabled:cursor-not-allowed ${
+      hasError ? "border-form-seal" : "border-form-rule"
     }`;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <header className="flex h-16 items-center bg-[#0F2747] px-6 text-white">
-        <h1 className="text-lg font-semibold">SUST Transit — Profile</h1>
-      </header>
-
+    <div className="min-h-screen bg-form-band">
       <main className="mx-auto max-w-2xl px-4 py-10">
-        <div className="rounded-lg border border-[#E2E8F0] bg-white p-6">
-          <h2 className="text-xl font-semibold text-[#1E293B]">
-            Complete your profile
-          </h2>
-          <p className="mt-1 text-sm text-[#64748B]">
-            Fields marked with 🔒 can only be changed by an admin after
-            verification.
+        <div className="border border-form-rule bg-form-paper px-6 py-6 shadow-sm sm:px-8">
+          <GovFormMasthead formTitle="Applicant Profile" />
+
+          <p className="mt-4 text-sm text-form-muted">
+            Update your details below at any time — this information is
+            shown on your requisitions.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-            <ProfileField
-              label="Applicant type"
-              required
-              error={errors.applicantType}
-            >
-              <select
-                value={applicantType}
-                onChange={(event) =>
-                  setApplicantType(event.target.value as ApplicantType)
-                }
-                className={inputClass()}
-              >
-                {APPLICANT_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </ProfileField>
-
             <ProfileField
               label="Applicant profile"
               required
@@ -248,6 +227,7 @@ export default function ProfileSetupPage() {
                   <input
                     value={department}
                     onChange={(event) => setDepartment(event.target.value)}
+                    disabled={lockActive && isLocked("department")}
                     className={inputClass(!!errors.department)}
                   />
                 </ProfileField>
@@ -262,6 +242,7 @@ export default function ProfileSetupPage() {
                     onChange={(event) =>
                       setStudentRegNumber(event.target.value)
                     }
+                    disabled={lockActive && isLocked("studentRegNumber")}
                     className={inputClass(!!errors.studentRegNumber)}
                   />
                 </ProfileField>
@@ -279,6 +260,7 @@ export default function ProfileSetupPage() {
                   <input
                     value={department}
                     onChange={(event) => setDepartment(event.target.value)}
+                    disabled={lockActive && isLocked("department")}
                     className={inputClass(!!errors.department)}
                   />
                 </ProfileField>
@@ -291,6 +273,7 @@ export default function ProfileSetupPage() {
                   <input
                     value={designation}
                     onChange={(event) => setDesignation(event.target.value)}
+                    disabled={lockActive && isLocked("designation")}
                     className={inputClass(!!errors.designation)}
                   />
                 </ProfileField>
@@ -308,6 +291,7 @@ export default function ProfileSetupPage() {
                   <input
                     value={office}
                     onChange={(event) => setOffice(event.target.value)}
+                    disabled={lockActive && isLocked("office")}
                     className={inputClass(!!errors.office)}
                   />
                 </ProfileField>
@@ -320,6 +304,7 @@ export default function ProfileSetupPage() {
                   <input
                     value={designation}
                     onChange={(event) => setDesignation(event.target.value)}
+                    disabled={lockActive && isLocked("designation")}
                     className={inputClass(!!errors.designation)}
                   />
                 </ProfileField>
@@ -374,7 +359,7 @@ export default function ProfileSetupPage() {
 
             <button
               type="submit"
-              className="h-10 rounded-md bg-[#0F2747] px-4 text-sm font-medium text-white hover:bg-[#334E68]"
+              className="h-10 rounded-none bg-primary px-4 text-sm font-medium text-white hover:bg-secondary"
             >
               Save and continue
             </button>

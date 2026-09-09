@@ -162,7 +162,7 @@ export function getVehicleEligibility(
     blockers.push("Already allocated to another trip at an overlapping time");
   }
 
-  if (vehicle.category !== trip.vehicleCategory) {
+  if (trip.vehicleCategory !== "Any" && vehicle.category !== trip.vehicleCategory) {
     warnings.push(
       `Category mismatch — requisition asked for ${trip.vehicleCategory}`,
     );
